@@ -1,5 +1,7 @@
 # Reversed engineering Icsee
 
+<img src="Assets/AppIcon.png" width="96" alt="Original lens and return-arrow app icon">
+
 **A native macOS viewer for iCSee / Xiongmai cameras over your own network.**
 
 [Português brasileiro](README.pt-BR.md) · [How it was reverse engineered](docs/REVERSE_ENGINEERING.md) · [Contributing](CONTRIBUTING.md)
@@ -22,9 +24,21 @@ It is a small, unofficial interoperability project. It does not embed the Androi
 
 The interface currently uses Brazilian Portuguese. Video output is scaled to 1280 pixels wide and capped at 15 fps. Audio, PTZ, recording, SD-card playback, cloud-account login and vendor P2P are not implemented. Remote viewing requires an already configured VPN into your home network; Reversed engineering Icsee does not configure one.
 
-## Build and run
+## Download and install
 
-Requirements: **Apple Silicon, macOS 14+, Swift 6 toolchain, Python 3, and FFmpeg**. Install Apple's Command Line Tools if needed, and install FFmpeg using an existing Homebrew installation:
+**[Download the latest macOS release](https://github.com/ndelanhese/reversed-engineering-icsee/releases/latest)** — Apple Silicon, macOS 14 or later.
+
+1. Download the **macos-arm64.dmg** asset from the release page, open it, and drag **Reversed engineering Icsee** to **Applications**. A ZIP is also available.
+2. Open the app from Applications. FFmpeg is included: no Homebrew, Python or compiler is needed to run this release.
+3. Builds are **ad-hoc signed, not Developer ID signed or notarized**. If macOS blocks the first launch and you trust this download, follow [Apple's instructions](https://support.apple.com/en-us/102445): **System Settings → Privacy & Security → Open Anyway** after the blocked attempt. There is no installer script that disables Gatekeeper.
+
+Release assets include `SHA256SUMS.txt`, FFmpeg build metadata and its corresponding source archive. The app uses [FFmpeg](https://ffmpeg.org/) under LGPL-2.1-or-later as a separate executable; [download its source alongside the app](https://github.com/ndelanhese/reversed-engineering-icsee/releases/latest/download/ffmpeg-9.0.2.tar.xz). App source and original icon are MIT licensed.
+
+Intel builds and every supported macOS version have not been validated. There is no automatic updater.
+
+## Build from source
+
+Requirements: **Apple Silicon, macOS 14+, Swift 6 toolchain, Python 3.12+, and FFmpeg**. For a quick development build, install Apple's Command Line Tools if needed and FFmpeg using an existing Homebrew installation:
 
 ```sh
 xcode-select --install
@@ -35,9 +49,17 @@ python3 build.py
 open "dist/Reversed engineering Icsee.app"
 ```
 
-The build uses `swiftc` directly. There is no Xcode project, Swift package dependency, Java runtime, Go runtime, or Rust runtime in the app. FFmpeg runs as a separate executable; it is not distributed here. Reversed engineering Icsee checks `/opt/homebrew/bin/ffmpeg` and `/usr/local/bin/ffmpeg`.
+The build uses `swiftc` directly. There is no Xcode project, Swift package dependency, Java runtime, Go runtime, or Rust runtime in the app. The quick development build uses an external FFmpeg from `/opt/homebrew/bin/ffmpeg` or `/usr/local/bin/ffmpeg`. Binary releases bundle a standalone LGPL decoder and prefer it over the external installations.
 
-Build output is locally signed **ad hoc**, not Developer ID signed or notarized. No prebuilt installer or automatic updates are provided. Intel builds and compatibility with every supported macOS version have not been validated.
+For the same self-contained app and packages distributed in Releases:
+
+```sh
+python3 Tools/build_ffmpeg.py
+python3 build.py --bundle-ffmpeg
+python3 Tools/package_release.py
+```
+
+Packages land in `dist/release/`. See [release maintenance](docs/RELEASING.md) for checks, licensing, tags and automation.
 
 ## Add your cameras
 
@@ -77,7 +99,7 @@ python3 test.py --interactive # adds native fullscreen / Escape checks
 python3 build.py             # creates and verifies an ad-hoc signed arm64 .app
 ```
 
-CI builds the app and runs core checks on a GitHub-hosted macOS runner. Window/fullscreen checks are manual desktop checks; CI is not a real-camera compatibility test. No camera credentials, APKs or live network access are required by these tests.
+CI builds the app, runs core checks, compiles the pinned FFmpeg, and verifies DMG/ZIP packages on a GitHub-hosted macOS runner. Offline synthetic H.264/HEVC decoding checks the bundled executable without Homebrew. Window/fullscreen checks remain manual desktop checks; CI is not a real-camera compatibility test. No camera credentials or APKs are required. The first packaging build downloads FFmpeg source from its official site.
 
 Start with [architecture](docs/ARCHITECTURE.md), [research provenance](docs/REVERSE_ENGINEERING.md), and [contribution rules](CONTRIBUTING.md). Please use synthetic data in issues and pull requests.
 
@@ -87,4 +109,4 @@ Built with assistance from Codex. The investigation used [REA](https://rea.tools
 
 ## License
 
-Reversed engineering Icsee's original source and documentation are [MIT licensed](LICENSE). Android packages, decompiled vendor source, vendor libraries and camera footage are not included. FFmpeg and investigation tools retain their own licenses; see [third-party notices](THIRD_PARTY_NOTICES.md).
+Reversed engineering Icsee's original source, icon and documentation are [MIT licensed](LICENSE). Binary releases include FFmpeg under LGPL-2.1-or-later, its notices in the app and matching source as a release asset. Android packages, decompiled vendor source, vendor libraries and camera footage are not included. See [third-party notices](THIRD_PARTY_NOTICES.md).
