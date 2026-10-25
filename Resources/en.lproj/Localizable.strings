@@ -55,3 +55,10 @@
 "Your cameras" = "Your cameras";
 
 "Could not read macOS Keychain (%lld). Saved credentials were kept. The prompt asks for your Mac login password." = "Could not read macOS Keychain (%lld). Saved credentials were kept. The prompt asks for your Mac login password.";
+
+"Preview camera" = "Preview camera";
+"Open app" = "Open app";
+"Quit" = "Quit";
+"Hover for camera preview. Click to keep it open." = "Hover for camera preview. Click to keep it open.";
+"Default preview camera" = "Default preview camera";
+"Use for menu bar preview" = "Use for menu bar preview";

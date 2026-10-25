@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0 — 2026-10-25
+
+- Add an original menu bar icon and native hover preview using the existing camera stream.
+- Save a default preview camera, selectable from the preview or the camera menu.
+- Support click-to-pin, connection controls, floating windows and reopening the main window from the preview.
+- Keep active cameras running when app windows close; explicit Quit stops all streams.
+- Localize new controls in English and Brazilian Portuguese and test background scene reopening.
+
 ## 0.3.3 — 2026-10-25
 
 - Use English for release notes and DMG installation instructions, with a link to the separate Brazilian Portuguese guide.

@@ -55,7 +55,9 @@ struct CameraBoard: View {
                             CameraTile(camera: camera, session: store.session(camera),
                                 connect: { authenticating = camera }, edit: { editing = camera }, rename: { renaming = camera },
                                 cinema: { cinemaID = camera.id }, popup: { windows.open(camera: camera, store: store) },
-                                fullscreen: { windows.open(camera: camera, store: store, fullscreen: true) })
+                                fullscreen: { windows.open(camera: camera, store: store, fullscreen: true) },
+                                isPreviewCamera: store.menuBarCamera?.id == camera.id,
+                                useForPreview: { store.selectMenuBarCamera(camera.id) })
                         }
                     }
                     if visible.isEmpty {
@@ -79,6 +81,8 @@ struct CameraTile: View {
     var cinema: () -> Void
     var popup: () -> Void
     var fullscreen: () -> Void
+    var isPreviewCamera: Bool
+    var useForPreview: () -> Void
     var body: some View {
         VStack(spacing: 0) {
             CameraVideo(session: session).aspectRatio(16/9, contentMode: .fit)
@@ -101,6 +105,10 @@ struct CameraTile: View {
                     Button("Floating window", systemImage: "rectangle.on.rectangle", action: popup)
                     Button("Cinema mode", systemImage: "rectangle.expand.vertical", action: cinema)
                     Button("Full screen", systemImage: "arrow.up.left.and.arrow.down.right", action: fullscreen)
+                    Divider()
+                    Button(isPreviewCamera ? String(localized: "Default preview camera") : String(localized: "Use for menu bar preview"),
+                           systemImage: isPreviewCamera ? "checkmark" : "menubar.rectangle", action: useForPreview)
+                        .disabled(isPreviewCamera)
                     Divider()
                     Button("Rename…", systemImage: "pencil", action: rename)
                     Button("Configure…", systemImage: "slider.horizontal.3", action: edit)

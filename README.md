@@ -19,6 +19,7 @@ It is a small, unofficial interoperability project. It does not embed the Androi
 - Rename a camera without interrupting its video.
 - Cinema mode, resizable floating popups, and native macOS fullscreen.
 - One shared stream per camera across its views.
+- Menu bar icon with hover preview and a saved default camera.
 - Local camera authentication, optional macOS Keychain storage, and one compatibility retry for Sofia-style authentication.
 - Connection diagnostics and a watchdog that stops showing frozen video as live.
 
@@ -113,7 +114,15 @@ Do not forward camera ports to the public internet. Local RTSP is not an encrypt
 | Rename / edit connection | Camera menu **⋯** |
 | Close popup | Native close button or `Command + W` |
 
-Closing a popup keeps the shared stream alive. Closing the last app window quits Reversed engineering Icsee and stops its streams.
+Closing a popup keeps the shared stream alive. Closing the main window keeps the app and active cameras running in the menu bar. Use **Quit** in the preview or `Command + Q` to stop all streams and exit.
+
+## Menu bar preview
+
+Hover over the lens icon in the macOS menu bar to see the selected camera. Move into the panel to use its controls; leaving both the icon and panel dismisses the hover preview. Click the icon to keep the panel open, then click again or click outside to dismiss it.
+
+Choose **Preview camera** in the panel, or **⋯ → Use for menu bar preview** on a camera card. This default is saved between launches. Renaming preserves the choice; deleting the selected camera falls back to another saved camera.
+
+The preview shares the existing video connection with the grid and floating windows. If disconnected, click **Connect** to enter or load saved credentials. Hovering never prompts for credentials or automatically starts a connection. **Open app** reopens the main window; **Floating window** opens a larger camera view.
 
 ## Privacy and authentication
 
@@ -126,7 +135,7 @@ Passwords, derived Sofia credentials and decoded video still exist in process me
 ```sh
 python3 test.py --core-only  # deterministic protocol/parser checks; no camera needed
 python3 test.py              # adds native window lifecycle checks; desktop required
-python3 test.py --interactive # adds native fullscreen / Escape checks
+python3 test.py --interactive # adds menu bar, scene reopening and fullscreen checks
 python3 build.py             # creates and verifies a signed arm64 .app
 ```
 

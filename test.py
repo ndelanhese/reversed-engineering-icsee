@@ -27,6 +27,10 @@ credential_test = build / 'credential-tests'
 subprocess.run(['swiftc', '-swift-version', '6', '-parse-as-library', *sources,
                 str(root/'Tests/CredentialStoreTest.swift'), '-o', str(credential_test)], check=True)
 subprocess.run([str(credential_test)], check=True)
+selection_test = build / 'menu-selection-tests'
+subprocess.run(['swiftc', '-swift-version', '6', '-parse-as-library', *sources,
+                str(root/'Tests/MenuBarSelectionTest.swift'), '-o', str(selection_test)], check=True)
+subprocess.run([str(selection_test)], check=True)
 locale_app = build / 'LocalizationFixture.app'
 locale_binary = locale_app / 'Contents/MacOS/localization-tests'
 locale_binary.parent.mkdir(parents=True, exist_ok=True)
@@ -62,6 +66,14 @@ subprocess.run(['swiftc','-swift-version','6','-parse-as-library',*sources,
                 str(root/'Tests/CameraWindowsTest.swift'),'-o',str(window_test)],check=True)
 subprocess.run([str(window_test)],check=True)
 if args.interactive:
+    menu_test = build / 'menu-preview-tests'
+    subprocess.run(['swiftc', '-swift-version', '6', '-parse-as-library', *sources,
+                    str(root/'Tests/MenuBarPreviewTest.swift'), '-o', str(menu_test)], check=True)
+    subprocess.run([str(menu_test)], check=True, timeout=20)
+    scene_test = build / 'menu-scene-tests'
+    subprocess.run(['swiftc', '-swift-version', '6', '-parse-as-library', *sources,
+                    str(root/'Tests/MenuBarSceneTest.swift'), '-o', str(scene_test)], check=True)
+    subprocess.run([str(scene_test)], check=True, timeout=20)
     for language in ['en', 'pt-BR']:
         subprocess.run([str(locale_binary), '-AppleLanguages', f'({language})',
                         '--expected-language', language, '--render-ui'],check=True,timeout=15)
