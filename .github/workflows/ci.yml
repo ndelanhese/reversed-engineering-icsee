@@ -3,22 +3,27 @@ name: CI
 on:
   push:
     branches: [main]
-    tags: ['v*']
   pull_request:
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      release_tag:
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: checks-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   macos:
     name: macOS build and core tests
     runs-on: macos-15
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -32,3 +37,25 @@ jobs:
         run: python3 test.py --core-only
       - name: Build and verify signed app
         run: python3 build.py
+      - name: Build pinned standalone FFmpeg
+        run: python3 Tools/build_ffmpeg.py
+      - name: Package and verify portable DMG and ZIP
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag || '' }}
+        run: python3 Tools/package_release.py --tag "$RELEASE_TAG"
+      - name: Upload verified release files
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: macos-arm64-release
+          path: dist/release/*
+          if-no-files-found: error
+          compression-level: 0
+      - name: Preserve failed disk image for diagnosis
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: failed-dmg-diagnostic
+          path: dist/release/*.dmg
+          if-no-files-found: ignore
+          retention-days: 2
+          compression-level: 0

@@ -1,5 +1,7 @@
 # Reversed engineering Icsee
 
+<img src="Assets/AppIcon.png" width="96" alt="Ícone original com lente e seta de retorno">
+
 **Cliente nativo macOS para câmeras iCSee / Xiongmai pela sua rede.**
 
 [English](README.md) · [Engenharia reversa e evidências](docs/REVERSE_ENGINEERING.md) · [Contribuir](CONTRIBUTING.md)
@@ -19,9 +21,21 @@ Sem vínculo com iCSee ou Xiongmai. Compatibilidade depende do firmware e do RTS
 
 Interface em português brasileiro. Áudio, PTZ, gravação, reprodução do cartão SD, login na nuvem e P2P não foram implementados. Acesso remoto depende de VPN já configurada; o app não instala nem configura VPN.
 
-## Compilar e abrir
+## Baixar e instalar
 
-Requisitos: **Mac Apple Silicon, macOS 14+, toolchain Swift 6, Python 3 e FFmpeg**. Com Homebrew disponível:
+**[Baixar release para macOS](https://github.com/ndelanhese/reversed-engineering-icsee/releases/latest)** — Apple Silicon, macOS 14 ou posterior.
+
+1. Baixe arquivo **macos-arm64.dmg**, abra e arraste **Reversed engineering Icsee** para **Applications**. ZIP também disponível.
+2. Abra pela pasta Applications. Release já inclui FFmpeg; não precisa instalar Homebrew, Python ou compilador.
+3. Assinatura **ad hoc**, sem Developer ID e sem notarização. Se macOS bloquear primeira abertura e você confiar no download, siga [orientações da Apple](https://support.apple.com/en-us/102445): **Ajustes do Sistema → Privacidade e Segurança → Abrir Mesmo Assim**, após tentativa bloqueada. Nenhum script desativa Gatekeeper.
+
+Release inclui `SHA256SUMS.txt`, configuração de build e fonte correspondente do FFmpeg. App usa [FFmpeg](https://ffmpeg.org/) sob LGPL-2.1-or-later como executável separado; [fonte disponível junto ao app](https://github.com/ndelanhese/reversed-engineering-icsee/releases/latest/download/ffmpeg-9.0.2.tar.xz). Código e ícone originais sob MIT.
+
+Builds Intel e todas as versões de macOS suportadas ainda não foram validados. Sem atualizador automático.
+
+## Compilar do código-fonte
+
+Requisitos: **Mac Apple Silicon, macOS 14+, toolchain Swift 6, Python 3.12+ e FFmpeg**. Para build de desenvolvimento, com Homebrew disponível:
 
 ```sh
 xcode-select --install
@@ -32,9 +46,17 @@ python3 build.py
 open "dist/Reversed engineering Icsee.app"
 ```
 
-Build direto com `swiftc`, sem projeto Xcode ou dependências Swift externas. FFmpeg é executável separado, procurado em `/opt/homebrew/bin/ffmpeg` ou `/usr/local/bin/ffmpeg`. Não está incluído neste repositório. Java foi usado na ferramenta de análise Android, não no app final.
+Build direto com `swiftc`, sem projeto Xcode ou dependências Swift externas. Build de desenvolvimento usa FFmpeg externo de `/opt/homebrew/bin/ffmpeg` ou `/usr/local/bin/ffmpeg`. Releases incluem decoder LGPL independente, com preferência sobre instalações externas. Java foi usado na ferramenta de análise Android, não no app final.
 
-Assinatura local **ad hoc**, sem Developer ID, notarização, instalador pronto ou atualizações automáticas. Builds Intel e todas as versões de macOS suportadas ainda não foram validados.
+Para gerar app independente e pacotes iguais aos distribuídos:
+
+```sh
+python3 Tools/build_ffmpeg.py
+python3 build.py --bundle-ffmpeg
+python3 Tools/package_release.py
+```
+
+Pacotes ficam em `dist/release/`. Veja [manutenção de releases](docs/RELEASING.md) para tags, validação e automação.
 
 ## Conectar
 
@@ -73,7 +95,7 @@ python3 test.py
 python3 test.py --interactive
 ```
 
-Primeiro comando não precisa de câmera nem sessão gráfica. Segundo adiciona testes de janelas; terceiro testa tela cheia e Esc. Ambos precisam de sessão gráfica. CI compila o app e executa testes do núcleo, sem acessar câmeras reais.
+Primeiro comando não precisa de câmera nem sessão gráfica. Segundo adiciona testes de janelas; terceiro testa tela cheia e Esc. Ambos precisam de sessão gráfica. CI também compila FFmpeg e valida DMG/ZIP com vídeos H.264/HEVC sintéticos, sem Homebrew no caminho. Primeiro build de empacotamento baixa fonte oficial do FFmpeg; não acessa câmeras reais.
 
 Leia [arquitetura](docs/ARCHITECTURE.md), [investigação](docs/REVERSE_ENGINEERING.md) e [regras de contribuição](CONTRIBUTING.md). Issues e PRs aceitam português ou inglês. Não envie senhas, vídeos privados, APKs ou dados da sua rede.
 
@@ -81,4 +103,4 @@ Leia [arquitetura](docs/ARCHITECTURE.md), [investigação](docs/REVERSE_ENGINEER
 
 Desenvolvido com assistência do Codex, usando [REA](https://rea.tools/) e a skill [`reverse-engineer-anything`](https://github.com/morluto/rea/blob/main/.agents/skills/reverse-engineer-anything/SKILL.md) para investigação, além de skills de Swift/macOS, depuração, testes, revisão e verificação. O documento de [engenharia reversa](docs/REVERSE_ENGINEERING.md) explica usos e limitações.
 
-Código e documentação originais sob [MIT](LICENSE). Sem redistribuição de APK, código descompilado, bibliotecas proprietárias ou imagens das câmeras. Ferramentas externas mantêm suas próprias licenças: [avisos de terceiros](THIRD_PARTY_NOTICES.md).
+Código, ícone e documentação originais sob [MIT](LICENSE). Releases incluem FFmpeg sob LGPL-2.1-or-later, avisos dentro do app e fonte correspondente como download separado. Sem redistribuição de APK, código descompilado, bibliotecas proprietárias ou imagens das câmeras. Veja [avisos de terceiros](THIRD_PARTY_NOTICES.md).
