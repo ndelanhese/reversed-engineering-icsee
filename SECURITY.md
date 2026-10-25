@@ -6,7 +6,7 @@ Security fixes target the latest version on `main`. Older tags are historical sn
 
 ## Report privately
 
-Use [GitHub private vulnerability reporting](https://github.com/ndelanhese/cammac/security/advisories/new). Include the affected revision, trust boundary, minimal reproduction with dummy credentials, expected/observed behavior and relevant source locations. Do not publish a vulnerability as a regular issue or include personal footage, device identifiers or live credentials.
+Use [GitHub private vulnerability reporting](https://github.com/ndelanhese/reversed-engineering-icsee/security/advisories/new). Include the affected revision, trust boundary, minimal reproduction with dummy credentials, expected/observed behavior and relevant source locations. Do not publish a vulnerability as a regular issue or include personal footage, device identifiers or live credentials.
 
 ## Boundaries and known limitations
 
@@ -19,3 +19,7 @@ Use [GitHub private vulnerability reporting](https://github.com/ndelanhese/camma
 - Builds are ad-hoc signed, not notarized. No bundled FFmpeg, automatic updater, hosted relay, cloud authentication or built-in VPN exists.
 
 The repository contains focused tests, not a complete security audit or a guarantee of safety against malicious streams. Never publish APKs, raw protocol traces, secrets or camera recordings as reproducers. Use small synthetic fixtures.
+
+## Synthetic protocol fixtures
+
+`Tests/CoreSelfTest.swift` uses documentation-only addresses, a synthetic user, deliberately malformed input and known Sofia transformation vectors. Its empty-string vector is not a credential extracted from a device. An initial GitGuardian alert pointed to the corresponding literal query assertion in commit `d628238`; that occurrence is a test-data false positive. Classify that specific historical incident as **False positive (not a secret)** rather than disabling a detector or excluding the test directory. The current test keeps its independently checked vector separate from the expected query string.

@@ -5,7 +5,7 @@ import Foundation
 final class FullscreenCheck: NSObject, NSApplicationDelegate {
     var windows = CameraWindows()
     var fixtureStore: CameraStore?
-    var suite = "CamMac-fullscreen-\(UUID())"
+    var suite = "ReversedEngineeringIcsee-fullscreen-\(UUID())"
     func sendEscape(_ id: UUID) {
         let window = NSApp.windows.first { $0.identifier?.rawValue == "camera-\(id)" }!
         window.makeFirstResponder(window.contentView)

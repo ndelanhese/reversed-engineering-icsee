@@ -1,6 +1,6 @@
 # Architecture
 
-CamMac is a Swift 6 app using SwiftUI for views and AppKit for native windows. It builds directly with `swiftc`; no package resolver or Xcode project is needed.
+Reversed engineering Icsee is a Swift 6 app using SwiftUI for views and AppKit for native windows. It builds directly with `swiftc`; no package resolver or Xcode project is needed.
 
 ```mermaid
 flowchart LR
@@ -24,12 +24,12 @@ flowchart LR
 | File | Responsibility |
 | --- | --- |
 | `Sources/CameraCore/CameraCore.swift` | Endpoint validation and encoding, RTSP playlist generation, Sofia transformation, JPEG framing, diagnostic classification and liveness rules |
-| `Sources/CamMac/CameraSession.swift` | FFmpeg process lifetime, pipes, background parsing, main-actor frame publication, watchdog and one compatibility retry |
-| `Sources/CamMac/CameraStore.swift` | Camera models, local preferences and Keychain operations |
-| `Sources/CamMac/CamMacApp.swift` | Main scene, camera grid, cinema selection, camera controls and application termination |
-| `Sources/CamMac/CameraWindows.swift` | One detached native window per camera, floating/fullscreen lifecycle and shared sessions |
-| `Sources/CamMac/CameraVideo.swift` | Aspect-preserving display and shared viewer controls |
-| `Sources/CamMac/CameraForms.swift` | Local authentication, renaming and connection settings |
+| `Sources/ReversedEngineeringIcsee/CameraSession.swift` | FFmpeg process lifetime, pipes, background parsing, main-actor frame publication, watchdog and one compatibility retry |
+| `Sources/ReversedEngineeringIcsee/CameraStore.swift` | Camera models, local preferences and Keychain operations |
+| `Sources/ReversedEngineeringIcsee/ReversedEngineeringIcseeApp.swift` | Main scene, camera grid, cinema selection, camera controls and application termination |
+| `Sources/ReversedEngineeringIcsee/CameraWindows.swift` | One detached native window per camera, floating/fullscreen lifecycle and shared sessions |
+| `Sources/ReversedEngineeringIcsee/CameraVideo.swift` | Aspect-preserving display and shared viewer controls |
+| `Sources/ReversedEngineeringIcsee/CameraForms.swift` | Local authentication, renaming and connection settings |
 
 ## Lifecycle
 
@@ -41,7 +41,7 @@ FFmpeg decodes the selected video stream, drops audio, scales output to a width 
 
 ## Build and test decisions
 
-`build.py` compiles arm64 for a macOS 14 minimum, writes an app bundle with identifier `local.CamMac`, and verifies its ad-hoc signature. The identifier stays stable to preserve preferences and credential associations across local builds.
+`build.py` compiles arm64 for a macOS 14 minimum and verifies the app's ad-hoc signature. The app bundle and display name are `Reversed engineering Icsee`; its executable is `ReversedEngineeringIcsee`. The legacy bundle identifier `local.CamMac` and Keychain service `local.CamMac.camera` intentionally stay stable to preserve preferences and saved credentials across the rename.
 
 Direct `swiftc` builds avoided an incompatible Swift Package Manager `PackageDescription` module in the original local toolchain. `ViewState` explicitly names `SwiftUI.State` to avoid an SDK macro name collision in that environment. Neither workaround is a runtime dependency.
 

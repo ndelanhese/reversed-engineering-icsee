@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.2 — 2026-10-25
+
+- Renamed the project, repository and native application to **Reversed engineering Icsee**.
+- Updated source paths, build output, documentation, issue templates and GitHub links.
+- Kept the original preferences identifier and Keychain service so existing camera profiles and saved credentials remain available.
+- Clarified the synthetic empty-password test vector that triggered a GitGuardian false positive; kept protocol assertions without a literal credential pair or broad scanner exclusions.
+
 ## 0.2.1 — 2026-10-25
 
 First public source release.

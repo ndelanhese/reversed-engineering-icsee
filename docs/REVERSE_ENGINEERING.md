@@ -25,7 +25,7 @@ The first standalone APK was insufficient because the installed app used split p
 2. **Inspect Android managed metadata.** REA's JADX bridge loaded the package and inspected relevant SDK integration classes, including `com.manager.XMFunSDKManager`. A task-local Temurin Java runtime supported this analysis. Java was used by the inspection tooling, not the Mac application.
 3. **Inspect the native SDK boundary.** ARM64 binary metadata, exported/JNI entry points and protocol strings helped identify the FunSDK/Xiongmai family. Native deep-analysis support was limited in the available environment. This was bounded inspection, not exhaustive SDK decompilation or recovery of its source.
 4. **Validate against the actual cameras.** Local endpoint checks and authenticated RTSP/DVRIP probes established which observed interfaces were usable. Static package evidence alone did not prove that a camera would stream video.
-5. **Implement only the needed behavior.** Native macOS views and a separate FFmpeg decoder replaced the Android runtime path. No Android executable code or SDK library is linked into CamMac.
+5. **Implement only the needed behavior.** Native macOS views and a separate FFmpeg decoder replaced the Android runtime path. No Android executable code or SDK library is linked into Reversed engineering Icsee.
 
 The original work also used REA-supported native UI inspection during development. Public source maintenance normally uses repository tools rather than re-running binary analysis.
 
@@ -33,7 +33,7 @@ The original work also used REA-supported native UI inspection during developmen
 
 One camera accepted ordinary RTSP authentication. The other remained usable in the phone app but rejected standard RTSP login with HTTP-style status 401, even with its correct local password. An authenticated local DVRIP login succeeded, and an RTSP request carrying the Sofia-style derived query credential succeeded. That supported a firmware compatibility explanation rather than simply assuming a wrong password.
 
-CamMac consequently tries the ordinary RTSP form first. Only a 401 before the first decoded frame permits one compatibility retry. The local credential is never bypassed; the second attempt uses a representation expected by this firmware family.
+Reversed engineering Icsee consequently tries the ordinary RTSP form first. Only a 401 before the first decoded frame permits one compatibility retry. The local credential is never bypassed; the second attempt uses a representation expected by this firmware family.
 
 The supported endpoint shape, with placeholders, is:
 
@@ -47,7 +47,7 @@ Only two physical cameras were validated during original development. Exact mode
 
 ## Agent skills and their roles
 
-Development was assisted by Codex with these instruction sets. They are development workflow guidance, not packages required to build or run CamMac.
+Development was assisted by Codex with these instruction sets. They are development workflow guidance, not packages required to build or run Reversed engineering Icsee.
 
 | Skill | Actual role |
 | --- | --- |

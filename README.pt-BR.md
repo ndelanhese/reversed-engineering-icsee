@@ -1,4 +1,4 @@
-# CamMac
+# Reversed engineering Icsee
 
 **Cliente nativo macOS para câmeras iCSee / Xiongmai pela sua rede.**
 
@@ -26,10 +26,10 @@ Requisitos: **Mac Apple Silicon, macOS 14+, toolchain Swift 6, Python 3 e FFmpeg
 ```sh
 xcode-select --install
 brew install ffmpeg
-git clone https://github.com/ndelanhese/cammac.git
-cd cammac
+git clone https://github.com/ndelanhese/reversed-engineering-icsee.git
+cd reversed-engineering-icsee
 python3 build.py
-open dist/CamMac.app
+open "dist/Reversed engineering Icsee.app"
 ```
 
 Build direto com `swiftc`, sem projeto Xcode ou dependências Swift externas. FFmpeg é executável separado, procurado em `/opt/homebrew/bin/ffmpeg` ou `/usr/local/bin/ffmpeg`. Não está incluído neste repositório. Java foi usado na ferramenta de análise Android, não no app final.
