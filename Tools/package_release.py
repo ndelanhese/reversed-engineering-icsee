@@ -63,8 +63,11 @@ Licenses and build configuration: app Contents/Resources/ThirdParty/FFmpeg.
         (image_root / 'READ-ME.txt').write_text(instructions)
         dmg = output / f'{prefix}.dmg'
         zip_path = output / f'{prefix}.zip'
+        # Separate filesystem creation from compression; direct UDZO creation produced unreadable images on CI.
+        writable = stage / 'installer.dmg'
         run(['hdiutil', 'create', '-volname', 'Reversed engineering Icsee', '-srcfolder',
-             str(image_root), '-fs', 'HFS+', '-format', 'UDZO', '-ov', str(dmg)])
+             str(image_root), '-fs', 'HFS+', '-format', 'UDRW', str(writable)])
+        run(['hdiutil', 'convert', str(writable), '-format', 'UDZO', '-ov', '-o', str(dmg)])
         run(['hdiutil', 'verify', str(dmg)])
         zip_path.unlink(missing_ok=True)
         run(['ditto', '-c', '-k', '--sequesterRsrc', '--keepParent', str(app), str(zip_path)])
