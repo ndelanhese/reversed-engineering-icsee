@@ -10,8 +10,8 @@ body:
   - type: input
     id: version
     attributes:
-      label: CamMac and macOS versions
-      placeholder: CamMac 0.2.1, macOS version, Apple Silicon model
+      label: Reversed engineering Icsee and macOS versions
+      placeholder: Reversed engineering Icsee 0.2.2, macOS version, Apple Silicon model
     validations:
       required: true
   - type: input

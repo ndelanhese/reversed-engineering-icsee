@@ -1,13 +1,13 @@
-# CamMac
+# Reversed engineering Icsee
 
 **A native macOS viewer for iCSee / Xiongmai cameras over your own network.**
 
 [Português brasileiro](README.pt-BR.md) · [How it was reverse engineered](docs/REVERSE_ENGINEERING.md) · [Contributing](CONTRIBUTING.md)
 
-[![CI](https://github.com/ndelanhese/cammac/actions/workflows/ci.yml/badge.svg)](https://github.com/ndelanhese/cammac/actions/workflows/ci.yml)
+[![CI](https://github.com/ndelanhese/reversed-engineering-icsee/actions/workflows/ci.yml/badge.svg)](https://github.com/ndelanhese/reversed-engineering-icsee/actions/workflows/ci.yml)
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-CamMac started with a simple need: view personally owned iCSee cameras on a Mac, with native windows and direct local video. Research on an Android app exported from the owner's phone helped identify the SDK family; authenticated camera tests established the RTSP behavior needed by this independent Swift implementation.
+Reversed engineering Icsee started with a simple need: view personally owned iCSee cameras on a Mac, with native windows and direct local video. Research on an Android app exported from the owner's phone helped identify the SDK family; authenticated camera tests established the RTSP behavior needed by this independent Swift implementation.
 
 It is a small, unofficial interoperability project. It does not embed the Android app or its SDK, and it is not affiliated with iCSee or Xiongmai. Compatibility depends on your camera's firmware and local RTSP support.
 
@@ -20,7 +20,7 @@ It is a small, unofficial interoperability project. It does not embed the Androi
 - Local camera authentication, optional macOS Keychain storage, and one compatibility retry for Sofia-style authentication.
 - Connection diagnostics and a watchdog that stops showing frozen video as live.
 
-The interface currently uses Brazilian Portuguese. Video output is scaled to 1280 pixels wide and capped at 15 fps. Audio, PTZ, recording, SD-card playback, cloud-account login and vendor P2P are not implemented. Remote viewing requires an already configured VPN into your home network; CamMac does not configure one.
+The interface currently uses Brazilian Portuguese. Video output is scaled to 1280 pixels wide and capped at 15 fps. Audio, PTZ, recording, SD-card playback, cloud-account login and vendor P2P are not implemented. Remote viewing requires an already configured VPN into your home network; Reversed engineering Icsee does not configure one.
 
 ## Build and run
 
@@ -29,13 +29,13 @@ Requirements: **Apple Silicon, macOS 14+, Swift 6 toolchain, Python 3, and FFmpe
 ```sh
 xcode-select --install
 brew install ffmpeg
-git clone https://github.com/ndelanhese/cammac.git
-cd cammac
+git clone https://github.com/ndelanhese/reversed-engineering-icsee.git
+cd reversed-engineering-icsee
 python3 build.py
-open dist/CamMac.app
+open "dist/Reversed engineering Icsee.app"
 ```
 
-The build uses `swiftc` directly. There is no Xcode project, Swift package dependency, Java runtime, Go runtime, or Rust runtime in the app. FFmpeg runs as a separate executable; it is not distributed here. CamMac checks `/opt/homebrew/bin/ffmpeg` and `/usr/local/bin/ffmpeg`.
+The build uses `swiftc` directly. There is no Xcode project, Swift package dependency, Java runtime, Go runtime, or Rust runtime in the app. FFmpeg runs as a separate executable; it is not distributed here. Reversed engineering Icsee checks `/opt/homebrew/bin/ffmpeg` and `/usr/local/bin/ffmpeg`.
 
 Build output is locally signed **ad hoc**, not Developer ID signed or notarized. No prebuilt installer or automatic updates are provided. Intel builds and compatibility with every supported macOS version have not been validated.
 
@@ -60,7 +60,7 @@ Do not forward camera ports to the public internet. Local RTSP is not an encrypt
 | Rename / edit connection | Camera menu **⋯** |
 | Close popup | Native close button or `Command + W` |
 
-Closing a popup keeps the shared stream alive. Closing the last app window quits CamMac and stops its streams.
+Closing a popup keeps the shared stream alive. Closing the last app window quits Reversed engineering Icsee and stops its streams.
 
 ## Privacy and authentication
 
@@ -87,4 +87,4 @@ Built with assistance from Codex. The investigation used [REA](https://rea.tools
 
 ## License
 
-CamMac's original source and documentation are [MIT licensed](LICENSE). Android packages, decompiled vendor source, vendor libraries and camera footage are not included. FFmpeg and investigation tools retain their own licenses; see [third-party notices](THIRD_PARTY_NOTICES.md).
+Reversed engineering Icsee's original source and documentation are [MIT licensed](LICENSE). Android packages, decompiled vendor source, vendor libraries and camera footage are not included. FFmpeg and investigation tools retain their own licenses; see [third-party notices](THIRD_PARTY_NOTICES.md).

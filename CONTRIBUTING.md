@@ -5,7 +5,7 @@ Issues and pull requests are welcome in English or Brazilian Portuguese. This is
 ## Before opening an issue
 
 - Read the requirements and limitations in the README.
-- For camera compatibility, provide manufacturer/model, firmware version if known, macOS version, CamMac version and the app's safe error message. State whether standard RTSP or the compatibility retry works.
+- For camera compatibility, provide manufacturer/model, firmware version if known, macOS version, Reversed engineering Icsee version and the app's safe error message. State whether standard RTSP or the compatibility retry works.
 - Replace network addresses with documentation examples such as `192.0.2.10` or `camera.example`.
 - Do not attach passwords, credential-bearing URLs, serial numbers, cloud IDs, personal footage, APKs, firmware, raw decoder logs or packet captures.
 - Report vulnerabilities privately using [SECURITY.md](SECURITY.md).

@@ -20,7 +20,7 @@ subprocess.run(['swiftc','-swift-version','6','-parse-as-library',str(core),
 subprocess.run([str(core_test)],check=True)
 if args.core_only:
     sys.exit(0)
-sources = [str(p) for p in sorted((root/'Sources').rglob('*.swift')) if p.name != 'CamMacApp.swift']
+sources = [str(p) for p in sorted((root/'Sources').rglob('*.swift')) if p.name != 'ReversedEngineeringIcseeApp.swift']
 window_test = build / 'window-tests'
 subprocess.run(['swiftc','-swift-version','6','-parse-as-library',*sources,
                 str(root/'Tests/CameraWindowsTest.swift'),'-o',str(window_test)],check=True)

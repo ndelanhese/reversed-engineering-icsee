@@ -1,6 +1,6 @@
 # Third-party notices
 
-The MIT license covers CamMac's original source and documentation only. The following tools and platforms are acknowledged; their code is not vendored in this repository.
+The MIT license covers Reversed engineering Icsee's original source and documentation only. The following tools and platforms are acknowledged; their code is not vendored in this repository.
 
 | Component | Role | Licensing / source |
 | --- | --- | --- |
@@ -10,6 +10,6 @@ The MIT license covers CamMac's original source and documentation only. The foll
 | JADX | Development-time Android package inspection through REA | [JADX source and license](https://github.com/skylot/jadx) |
 | Eclipse Temurin | Development-time Java runtime for the analysis tooling | [Temurin](https://adoptium.net/temurin/) |
 
-CamMac does not distribute FFmpeg, Android APKs, `libFunSDK.so`, other vendor libraries, decompiled vendor source, vendor artwork or camera footage. Adding any external binary later requires a separate review of that exact artifact's license and distribution obligations.
+Reversed engineering Icsee does not distribute FFmpeg, Android APKs, `libFunSDK.so`, other vendor libraries, decompiled vendor source, vendor artwork or camera footage. Adding any external binary later requires a separate review of that exact artifact's license and distribution obligations.
 
-iCSee and Xiongmai names identify compatibility targets; trademarks and proprietary software remain with their respective owners. CamMac is an independent project with no claimed affiliation or endorsement.
+iCSee and Xiongmai names identify compatibility targets; trademarks and proprietary software remain with their respective owners. Reversed engineering Icsee is an independent project with no claimed affiliation or endorsement.

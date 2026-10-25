@@ -8,14 +8,16 @@ enum CoreSelfTest {
             if !condition { failures.append(label) }
         }
         let endpoint = CameraEndpoint(host: "192.0.2.10")
-        let text = String(decoding: try endpoint.playlist(username: "admin", password: "a'b@#\nfile /etc/passwd"), as: UTF8.self)
+        let text = String(decoding: try endpoint.playlist(username: "test-user", password: "a'b@#\nfile /etc/passwd"), as: UTF8.self)
         check(text.contains("a%27b%40%23%0Afile%20%2Fetc%2Fpasswd"), "Credentials are URL encoded")
         check(text.components(separatedBy: "\nfile ").count == 2, "Exactly one playlist file")
         check(!text.contains("\nfile /etc/passwd"), "Credentials cannot inject a file directive")
-        check(sofiaPassword("") == "tlJwpbo6", "Xiongmai empty-password protocol vector")
+        // Synthetic protocol vector derived from an empty string, never a camera credential.
+        let emptyPasswordVector = "tlJwpbo6"
+        check(sofiaPassword("") == emptyPasswordVector, "Xiongmai empty-password protocol vector")
         check(sofiaPassword("password") == "mF95aD4o", "Xiongmai nonempty-password protocol vector")
-        let compatible = String(decoding: try endpoint.playlist(username: "admin", password: "", useSofiaQuery: true), as: UTF8.self)
-        check(compatible.contains("user=admin&password=tlJwpbo6&channel=1"), "Sofia credential reaches the vendor RTSP path")
+        let compatible = String(decoding: try endpoint.playlist(username: "test-user", password: "", useSofiaQuery: true), as: UTF8.self)
+        check(compatible.contains("user=test-user&password=\(emptyPasswordVector)&channel=1"), "Sofia credential reaches the vendor RTSP path")
         for host in ["", "192.0.2.1\nfile", "example.com/path", "a@b", "-option"] {
             do {
                 _ = try CameraEndpoint(host: host).playlist(username: "a", password: "b")

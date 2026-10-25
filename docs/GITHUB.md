@@ -1,6 +1,6 @@
 # GitHub governance
 
-Public repository: [ndelanhese/cammac](https://github.com/ndelanhese/cammac). Maintainer and code owner: [@ndelanhese](https://github.com/ndelanhese).
+Public repository: [ndelanhese/reversed-engineering-icsee](https://github.com/ndelanhese/reversed-engineering-icsee). Maintainer and code owner: [@ndelanhese](https://github.com/ndelanhese).
 
 ## Contribution gates
 
@@ -10,7 +10,7 @@ Public repository: [ndelanhese/cammac](https://github.com/ndelanhese/cammac). Ma
 - `v*` tags: only the administrator bypass can create, update or delete them. Treat published tags as immutable; issue a new version for corrections.
 - Squash and rebase merges are enabled; merge commits and automatic PR approval by Actions are disabled. Merged branches are deleted automatically.
 
-The JSON payloads in [`.github/rulesets`](../.github/rulesets) describe the active rulesets. GitHub does **not** apply those files automatically. An administrator must apply changes through repository settings or the REST API. The server's [Rules page](https://github.com/ndelanhese/cammac/rules) is authoritative.
+The JSON payloads in [`.github/rulesets`](../.github/rulesets) describe the active rulesets. GitHub does **not** apply those files automatically. An administrator must apply changes through repository settings or the REST API. The server's [Rules page](https://github.com/ndelanhese/reversed-engineering-icsee/rules) is authoritative.
 
 ## Automation and reports
 

@@ -5,7 +5,7 @@ import Foundation
 struct CameraWindowsTest {
     @MainActor static func main() throws {
         _ = NSApplication.shared
-        let suite = "CamMac-window-tests-\(UUID())"
+        let suite = "ReversedEngineeringIcsee-window-tests-\(UUID())"
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
         guard CameraStore(defaults: defaults).cameras.isEmpty else {

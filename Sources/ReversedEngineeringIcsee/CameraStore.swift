@@ -21,6 +21,7 @@ struct Credentials: Codable {
 }
 
 enum CredentialStore {
+    // Keep the legacy service name so renaming the app preserves saved credentials.
     private static let service = "local.CamMac.camera"
     static func load(_ id: UUID) -> Credentials? {
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
