@@ -30,7 +30,13 @@ def run_control_fixture(binary, arguments=(), server_arguments=(), timeout=25):
     try:
         ready, _, _ = select.select([server.stdout], [], [], 10)
         if not ready:
-            raise RuntimeError('Local control fixture did not start in time.')
+            server.terminate()
+            try:
+                _, diagnostics = server.communicate(timeout=5)
+            except subprocess.TimeoutExpired:
+                server.kill()
+                _, diagnostics = server.communicate()
+            raise RuntimeError('Local control fixture did not start in time. ' + diagnostics[-2000:])
         ports = json.loads(server.stdout.readline())
         subprocess.run([str(binary), str(ports['onvifPort']), str(ports['controlPort']), *arguments],
                        check=True, timeout=timeout)

@@ -180,12 +180,21 @@ class TCPServer(socketserver.ThreadingTCPServer):
     allow_reuse_address = True
 
 
+class LoopbackHTTPServer(http.server.ThreadingHTTPServer):
+    def server_bind(self):
+        # HTTPServer's default bind performs reverse DNS. This isolated peer
+        # needs no hostname lookup, especially on hosted macOS runners.
+        socketserver.TCPServer.server_bind(self)
+        self.server_name = "localhost"
+        self.server_port = self.server_address[1]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--array-camera-param", action="store_true")
     args = parser.parse_args()
     state = State(args.array_camera_param)
-    http_peer = http.server.ThreadingHTTPServer(("127.0.0.1", 0), SOAPHandler)
+    http_peer = LoopbackHTTPServer(("127.0.0.1", 0), SOAPHandler)
     tcp = TCPServer(("127.0.0.1", 0), DVRIPHandler)
     http_peer.state = tcp.state = state
     for server in (http_peer, tcp):
