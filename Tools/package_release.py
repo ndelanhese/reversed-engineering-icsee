@@ -65,6 +65,7 @@ Licenses and build configuration: app Contents/Resources/ThirdParty/FFmpeg.
         zip_path = output / f'{prefix}.zip'
         run(['hdiutil', 'create', '-volname', 'Reversed engineering Icsee', '-srcfolder',
              str(image_root), '-fs', 'HFS+', '-format', 'UDZO', '-ov', str(dmg)])
+        run(['hdiutil', 'verify', str(dmg)])
         zip_path.unlink(missing_ok=True)
         run(['ditto', '-c', '-k', '--sequesterRsrc', '--keepParent', str(app), str(zip_path)])
         # Verify the distributed archives, not only the staging directory.
@@ -73,8 +74,12 @@ Licenses and build configuration: app Contents/Resources/ThirdParty/FFmpeg.
         verify(unzipped / APP_NAME)
         mounted = stage / 'mounted'
         mounted.mkdir()
-        attachment = subprocess.check_output(['hdiutil', 'attach', '-readonly', '-nobrowse',
-            '-mountpoint', str(mounted), '-plist', str(dmg)])
+        try:
+            attachment = subprocess.check_output(['hdiutil', 'attach', '-readonly', '-nobrowse',
+                '-mountpoint', str(mounted), '-plist', str(dmg)])
+        except subprocess.CalledProcessError:
+            subprocess.run(['hdiutil', 'imageinfo', str(dmg)], check=False)
+            raise
         devices = plistlib.loads(attachment)['system-entities']
         if not any(entity.get('mount-point') == str(mounted) for entity in devices):
             raise SystemExit('DMG did not mount at the expected verification directory.')
