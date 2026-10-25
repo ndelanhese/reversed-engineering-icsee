@@ -6,6 +6,7 @@ final class CameraAppLifecycle: NSObject, NSApplicationDelegate {
     private var store: CameraStore?
     private var windows: CameraWindows?
     private(set) var menuBar: CameraMenuBar?
+    private var terminationPending = false
     func configure(store: CameraStore, windows: CameraWindows, openMain: @escaping () -> Void) {
         guard menuBar == nil else { return }
         self.store = store
@@ -15,6 +16,16 @@ final class CameraAppLifecycle: NSObject, NSApplicationDelegate {
         menu.install()
     }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        guard let windows, windows.hasControlsToShutdown else { return .terminateNow }
+        guard !terminationPending else { return .terminateLater }
+        terminationPending = true
+        Task {
+            await windows.prepareForTermination()
+            sender.reply(toApplicationShouldTerminate: true)
+        }
+        return .terminateLater
+    }
     func applicationWillTerminate(_ notification: Notification) {
         menuBar?.uninstall()
         windows?.closeAll()
@@ -125,6 +136,7 @@ final class CameraMenuBar: NSObject, NSPopoverDelegate {
     }
     func openMainWindow() { popover.close(); NSApp.activate(); openMain() }
     func openPopup(_ camera: Camera) { popover.close(); windows.open(camera: camera, store: store) }
+    func openControls(_ camera: Camera) { popover.close(); windows.openControls(camera: camera, store: store) }
     func popoverDidClose(_ notification: Notification) {
         pinned = false; overPreview = false
         closeTask?.cancel()
@@ -173,6 +185,8 @@ private struct CameraMenuBarPreview: View {
                     }
                     Button("Floating window", systemImage: "rectangle.on.rectangle") { menuBar.openPopup(camera) }
                 }.controlSize(.small)
+                Button("Camera controls…", systemImage: "slider.horizontal.3") { menuBar.openControls(camera) }
+                    .controlSize(.small)
             } else {
                 ContentUnavailableView("No cameras", systemImage: "video", description: Text("Add an address and credentials to get started."))
                     .frame(height: 220)

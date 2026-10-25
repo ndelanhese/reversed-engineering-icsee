@@ -72,7 +72,9 @@ The public-repository preparation additionally used focused privacy/security rev
 | The viewer has no Android runtime dependency | Published Swift source and build script; no vendor library distributed |
 | Parser and encoding behavior is repeatable | Synthetic tests in `Tests/CoreSelfTest.swift` |
 | Popup/fullscreen share the camera session | Local native lifecycle tests; desktop tests are separate from CI |
-| Cloud/P2P, audio, PTZ and SD playback work | **Not established and not implemented** |
+| Native PTZ and image controls | ONVIF implementation; bounded command/Stop acknowledgements and brightness write/readback/restoration on two cameras; other physical features firmware-dependent |
+| Vendor device settings | DVRIP implementation and synthetic transaction/lifecycle verification; all firmware fields not exhaustively certified |
+| Cloud/P2P, live audio and SD playback work | **Not established and not implemented** |
 | Full vendor protocol or SDK was recovered | **Not claimed** |
 
 For another device, obtain your own authorized input, keep private artifacts outside the repository, document observations without copying vendor implementation, and test using your own device credentials. Do not attach private dumps to issues.

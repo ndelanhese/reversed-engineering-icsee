@@ -94,6 +94,8 @@ struct CameraEditor: View {
                 TextField("RTSP port", value: $camera.port, format: .number.grouping(.never))
                 Stepper("Channel \(camera.channel)", value: $camera.channel, in: 1...64)
                 Toggle("Substream", isOn: $camera.substream)
+                TextField("ONVIF port", value: $camera.onvifPort, format: .number.grouping(.never))
+                TextField("Device control port", value: $camera.controlPort, format: .number.grouping(.never))
             }
             Text("For remote access, the address must be reachable over a VPN. iCSee cloud login is not available yet.")
                 .font(.callout).foregroundStyle(.secondary)
@@ -105,6 +107,7 @@ struct CameraEditor: View {
                 Button("Save") {
                     do {
                         _ = try camera.endpoint.playlist(username: "validation", password: "")
+                        guard (1...65535).contains(camera.onvifPort), (1...65535).contains(camera.controlPort) else { throw CameraError.invalidEndpoint }
                         save(camera); dismiss()
                     } catch { self.error = error.localizedDescription }
                 }

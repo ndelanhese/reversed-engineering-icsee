@@ -62,3 +62,9 @@ Direct `swiftc` builds avoided an incompatible Swift Package Manager `PackageDes
 An app-owned `CameraAppLifecycle` installs one `NSStatusItem` and `NSPopover` after the main SwiftUI scene appears. Native tracking opens the preview after a short hover and allows pointer handoff into the panel. Clicks pin it for menus and explicit authentication. No hover path touches Keychain or starts FFmpeg. The chosen camera UUID is a separate preferences key; camera profile encoding and credential service identifiers stay unchanged.
 
 The popover observes the same store and session as the other views. `OpenWindowAction` from the production main-window view can reopen the closed scene. Explicit Quit removes tracking/monitor resources and cancels pending hover work before stopping sessions. Interactive fixtures cover native popover behavior and closing/reopening the actual SwiftUI scene without camera connections.
+
+## Camera control connections
+
+Native control windows share the existing video session but own independent ONVIF and DVRIP clients. `ONVIFClient` handles bounded SOAP/XML, authentication, profiles/options, movement/presets and imaging writes. `DVRIPClient` handles framed TCP sessions, serialized configuration transactions and keepalive. `DeviceJSON` preserves structured values and applies edited leaves to fresh values with conflict checks.
+
+`CameraControlModel` owns per-camera tasks and generation guards, capability/error state, drafts, discovery and movement cleanup. `CameraControlsView` and `DeviceSettingsEditor` provide native controls without automatic writes. `CameraWindows` retains closed-window cleanup tasks; `CameraAppLifecycle` delays normal termination until movement/restart cleanup completes. See [control guide](CAMERA_CONTROLS.md) for limits and validation.

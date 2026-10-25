@@ -19,10 +19,12 @@ Sem vínculo com iCSee ou Xiongmai. Compatibilidade depende do firmware e do RTS
 - Ícone na barra de menus com prévia ao passar o mouse e câmera padrão salva.
 - Credenciais locais, salvamento opcional no Chaves e tentativa de compatibilidade Sofia após erro de autenticação.
 - Diagnóstico de conexão e detecção de vídeo congelado.
+- Movimento PTZ curto, parada, posições salvas e imagem conforme os perfis e opções da câmera.
+- Ajustes locais descobertos, com edição estruturada, detecção de conflitos e verificação por leitura.
 
 Interface segue idioma preferido no macOS: **inglês ou português brasileiro**, respeitando ordem de preferências e idioma específico por app. Inglês é fallback quando nenhum idioma preferido compatível é encontrado. Após mudar em **Ajustes do Sistema → Geral → Idioma e Região → Aplicativos**, encerre e reabra app. Nomes das câmeras permanecem como você definiu.
 
-Áudio, PTZ, gravação, reprodução do cartão SD, login na nuvem e P2P não foram implementados. Acesso remoto depende de VPN já configurada; o app não instala nem configura VPN.
+Áudio ao vivo/bidirecional, gravação no Mac, reprodução do cartão SD, login na nuvem e P2P não foram implementados. Ajustes de gravação/áudio na própria câmera podem estar disponíveis nos controles do dispositivo. Acesso remoto depende de VPN já configurada; o app não instala nem configura VPN.
 
 ## Baixar e instalar
 
@@ -119,6 +121,22 @@ Passe o mouse sobre o ícone de lente na barra de menus do macOS para ver a câm
 Escolha **Câmera da prévia** no painel ou **⋯ → Usar na prévia da barra de menus** no cartão da câmera. A escolha permanece entre aberturas do app. Renomear preserva a seleção; excluir a câmera selecionada escolhe outra câmera salva.
 
 A prévia compartilha a conexão existente com a grade e os popups. Se estiver desconectada, clique **Conectar** para informar ou carregar credenciais salvas. Passar o mouse não pede senha nem inicia conexão automaticamente. **Abrir app** reabre a janela principal; **Popup flutuante** abre uma visualização maior.
+
+## Controles da câmera
+
+Abra **⋯ → Controles da câmera…** no cartão ou pelo botão de controles no cinema, popup ou prévia da barra. As credenciais da transmissão ativa são reutilizadas em memória. Caso contrário, use **Autenticar…** com as credenciais locais; o Chaves continua sendo usado somente pelo fluxo de autenticação explícito.
+
+- **Movimento:** escolha o perfil informado pela câmera, use as setas para movimentos curtos e ajuste a velocidade. **Parar movimento** cancela e envia a parada. Zoom e posições salvas dependem do suporte do dispositivo. Movimento contínuo usa limite no dispositivo de até um segundo; posições salvas usam monitoramento com limite de 15 segundos e parada, pois o padrão ONVIF não fornece Timeout para essa operação.
+- **Imagem:** brilho, contraste, saturação, nitidez, exposição e visão noturna aparecem conforme opções e limites retornados. **Aplicar ajustes de imagem** grava e verifica por nova leitura. Trocar perfil ou recarregar pede confirmação antes de descartar edições.
+- **Ajustes do dispositivo:** após autenticar, o app consulta um catálogo limitado de seções conhecidas. Por padrão, mostra somente as que a câmera retornou. **Mostrar ajustes não verificados** permite ver candidatos e falhas de leitura, sem afirmar compatibilidade.
+
+O editor preserva campos, tipos e posições nas listas, mascara valores semelhantes a senhas e pede confirmação para aplicar. Antes de gravar, consulta os valores atuais e impede sobrescrever conflitos. Campos desconhecidos de outras funções são preservados. Ajustes avançados usam nomes do firmware e podem ser rejeitados por suporte ou permissão. Leituras bem-sucedidas não comprovam todos os limites de escrita.
+
+Portas padrão: **ONVIF 8899** e **controle local 34567**, editáveis em **Configurar…**. Mudanças de rede, privacidade e energia podem desconectar a câmera. **Reiniciar câmera…** é uma ação separada e confirmada; mantenha o app aberto durante a espera de 15 segundos e reconecte após a câmera terminar de reiniciar. Sair normalmente aguarda a limpeza das operações pendentes.
+
+Nuvem, integrações de celular, formatação, restauração de fábrica, atualização de firmware e administração de contas/senhas não são acionadas por este editor local. Não existe descoberta universal de todos os parâmetros de todos os firmwares.
+
+Validação real nas duas câmeras: consultas ONVIF, solicitações curtas de movimento/parada e alteração de brilho com leitura e restauração do original. Os testes com servidores locais sintéticos cobrem DVRIP, alterações, conflitos e encerramento/reinicialização; ajustes reais de rede, armazenamento, senha e reinício não foram usados na validação. Veja o [guia técnico em inglês](docs/CAMERA_CONTROLS.md).
 
 ## Privacidade e limites
 

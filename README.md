@@ -22,10 +22,12 @@ It is a small, unofficial interoperability project. It does not embed the Androi
 - Menu bar icon with hover preview and a saved default camera.
 - Local camera authentication, optional macOS Keychain storage, and one compatibility retry for Sofia-style authentication.
 - Connection diagnostics and a watchdog that stops showing frozen video as live.
+- Native PTZ nudges, Stop, device presets and image controls based on camera-provided profiles/options.
+- Discovered local vendor settings with structured editing, conflict checks and verified readback.
 
 The interface follows your macOS preferred app language: **English or Brazilian Portuguese**, with English as the development-language fallback when no preferred supported language matches. macOS per-app language preferences are respected. Quit and reopen the app after changing its language in **System Settings → General → Language & Region → Applications**. User-entered camera names are preserved.
 
-Video output is scaled to 1280 pixels wide and capped at 15 fps. Audio, PTZ, recording, SD-card playback, cloud-account login and vendor P2P are not implemented. Remote viewing requires an already configured VPN into your home network; Reversed engineering Icsee does not configure one.
+Video output is scaled to 1280 pixels wide and capped at 15 fps. Live/two-way audio, Mac-side recording, SD-card playback, cloud-account login and vendor P2P are not implemented. Camera-side recording/audio settings can be available through device controls. Remote viewing requires an already configured VPN into your home network; Reversed engineering Icsee does not configure one.
 
 ## Download and install
 
@@ -123,6 +125,12 @@ Hover over the lens icon in the macOS menu bar to see the selected camera. Move 
 Choose **Preview camera** in the panel, or **⋯ → Use for menu bar preview** on a camera card. This default is saved between launches. Renaming preserves the choice; deleting the selected camera falls back to another saved camera.
 
 The preview shares the existing video connection with the grid and floating windows. If disconnected, click **Connect** to enter or load saved credentials. Hovering never prompts for credentials or automatically starts a connection. **Open app** reopens the main window; **Floating window** opens a larger camera view.
+
+## Camera controls
+
+Open **⋯ → Camera controls…** on a camera, or use the controls button in cinema/floating views or the menu bar preview. Active video credentials are reused in memory; otherwise use **Authenticate…**. The window provides supported PTZ/preset controls, image options and discovered local device settings. Changes are explicit and verified; unsupported or forbidden operations remain visible.
+
+See the [camera control guide](docs/CAMERA_CONTROLS.md) for profiles, ports, movement limits, advanced fields, restart behavior and validation scope. Cloud/phone features remain separate.
 
 ## Privacy and authentication
 

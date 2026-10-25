@@ -5,6 +5,11 @@ import Observation
 @MainActor @Observable
 final class CameraWindows: NSObject, NSWindowDelegate {
     private var windows: [UUID: NSWindow] = [:]
+    private var controlWindows: [UUID: NSWindow] = [:]
+    private var controlModels: [UUID: CameraControlModel] = [:]
+    private var pendingControlShutdowns: [UUID: Task<Void, Never>] = [:]
+    private var terminating = false
+    var hasControlsToShutdown: Bool { !controlModels.isEmpty || !pendingControlShutdowns.isEmpty }
     var fullscreenIDs: Set<UUID> = []
     func open(camera: Camera, store: CameraStore, fullscreen: Bool = false) {
         guard store.cameras.contains(where: { $0.id == camera.id }) else { return }
@@ -39,8 +44,44 @@ final class CameraWindows: NSObject, NSWindowDelegate {
         window.toggleFullScreen(nil)
     }
     func updateTitle(_ title: String, id: UUID) { windows[id]?.title = title }
+    @discardableResult func openControls(camera: Camera, store: CameraStore) -> CameraControlModel? {
+        guard !terminating, store.cameras.contains(where: { $0.id == camera.id }) else { return nil }
+        let window: NSWindow
+        if let existing = controlWindows[camera.id] { window = existing }
+        else {
+            let model = CameraControlModel(camera: camera)
+            window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1040, height: 740),
+                              styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+            window.identifier = NSUserInterfaceItemIdentifier("controls-\(camera.id)")
+            window.isReleasedWhenClosed = false
+            window.contentMinSize = NSSize(width: 900, height: 640)
+            window.delegate = self
+            controlWindows[camera.id] = window
+            controlModels[camera.id] = model
+            window.contentView = NSHostingView(rootView: CameraControlsView(cameraID: camera.id, store: store, windows: self, model: model))
+            window.center()
+        }
+        window.title = camera.name
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate()
+        return controlModels[camera.id]
+    }
+    func prepareForTermination() async {
+        terminating = true
+        Array(controlWindows.values).forEach { $0.close() }
+        let pending = Array(pendingControlShutdowns.values)
+        await withTaskGroup(of: Void.self) { group in
+            for task in pending { group.addTask { await task.value } }
+        }
+    }
+    func updateControlTitle(_ title: String, id: UUID) { controlWindows[id]?.title = title }
+    func closeControls(_ id: UUID) { controlWindows[id]?.close() }
+    func disconnectControls() { controlModels.values.forEach { $0.disconnect() } }
     func close(_ id: UUID) { windows[id]?.close() }
-    func closeAll() { Array(windows.values).forEach { $0.close() } }
+    func closeAll() {
+        Array(controlWindows.values).forEach { $0.close() }
+        Array(windows.values).forEach { $0.close() }
+    }
     private func cameraID(_ window: NSWindow) -> UUID? { windows.first { $0.value === window }?.key }
     func windowWillEnterFullScreen(_ notification: Notification) { (notification.object as? NSWindow)?.level = .normal }
     func windowDidEnterFullScreen(_ notification: Notification) {
@@ -52,7 +93,18 @@ final class CameraWindows: NSObject, NSWindowDelegate {
         window.level = .floating
     }
     func windowWillClose(_ notification: Notification) {
-        guard let window = notification.object as? NSWindow, let id = cameraID(window) else { return }
+        guard let window = notification.object as? NSWindow else { return }
+        if let id = controlWindows.first(where: { $0.value === window })?.key {
+            if let model = controlModels.removeValue(forKey: id) {
+                let ticket = UUID()
+                let task = Task { await model.shutdown() }
+                pendingControlShutdowns[ticket] = task
+                Task { [weak self] in await task.value; self?.pendingControlShutdowns[ticket] = nil }
+            }
+            controlWindows.removeValue(forKey: id)
+            return
+        }
+        guard let id = cameraID(window) else { return }
         fullscreenIDs.remove(id)
         windows.removeValue(forKey: id)
     }
@@ -68,7 +120,8 @@ struct DetachedCameraView: View {
             if let camera = store.cameras.first(where: { $0.id == cameraID }) {
                 CameraStage(camera: camera, session: store.session(camera),
                     fullscreen: { windows.toggleFullscreen(cameraID) },
-                    isFullscreen: windows.fullscreenIDs.contains(cameraID), connect: { authenticating = true })
+                    isFullscreen: windows.fullscreenIDs.contains(cameraID), connect: { authenticating = true },
+                    controls: { windows.openControls(camera: camera, store: store) })
                 .sheet(isPresented: $authenticating) {
                     CredentialSheet(camera: camera) { credentials in store.session(camera).start(camera: camera, credentials: credentials) }
                 }
