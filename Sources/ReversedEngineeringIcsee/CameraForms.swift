@@ -33,6 +33,8 @@ struct CredentialSheet: View {
     @ViewState private var username = "admin"
     @ViewState private var password = ""
     @ViewState private var remember = false
+    @ViewState private var loadedSavedCredentials = false
+    @ViewState private var attemptedLoad = false
     @ViewState private var error: String?
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -53,7 +55,7 @@ struct CredentialSheet: View {
                     let value = Credentials(username: username, password: password)
                     do {
                         if remember { try CredentialStore.save(value, for: camera.id) }
-                        else { CredentialStore.remove(camera.id) }
+                        else if loadedSavedCredentials { CredentialStore.remove(camera.id) }
                         connect(value)
                         password = ""
                         dismiss()
@@ -64,9 +66,14 @@ struct CredentialSheet: View {
         }
         .padding(28).frame(width: 420)
         .onAppear {
-            if let saved = CredentialStore.load(camera.id) {
-                username = saved.username; password = saved.password; remember = true
-            }
+            guard !attemptedLoad else { return }
+            attemptedLoad = true
+            do {
+                if let saved = try CredentialStore.load(camera.id) {
+                    username = saved.username; password = saved.password; remember = true
+                    loadedSavedCredentials = true
+                }
+            } catch { self.error = error.localizedDescription }
         }
     }
 }

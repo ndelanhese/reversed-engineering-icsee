@@ -53,3 +53,5 @@
 "Use device credentials. They may differ from your iCSee account." = "Use credenciais do dispositivo. Elas podem ser diferentes da conta iCSee.";
 "Video directly from your network." = "Vídeo direto da sua rede.";
 "Your cameras" = "Suas câmeras";
+
+"Could not read macOS Keychain (%lld). Saved credentials were kept. The prompt asks for your Mac login password." = "Não foi possível ler o Chaves do macOS (%lld). As credenciais salvas foram mantidas. O aviso pede a senha de início de sessão do Mac.";

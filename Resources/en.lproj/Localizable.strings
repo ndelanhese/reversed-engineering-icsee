@@ -53,3 +53,5 @@
 "Use device credentials. They may differ from your iCSee account." = "Use device credentials. They may differ from your iCSee account.";
 "Video directly from your network." = "Video directly from your network.";
 "Your cameras" = "Your cameras";
+
+"Could not read macOS Keychain (%lld). Saved credentials were kept. The prompt asks for your Mac login password." = "Could not read macOS Keychain (%lld). Saved credentials were kept. The prompt asks for your Mac login password.";

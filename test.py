@@ -23,6 +23,10 @@ subprocess.run(['swiftc','-swift-version','6','-parse-as-library',str(core),
                 str(root/'Tests/CoreSelfTest.swift'),'-o',str(core_test)],check=True)
 subprocess.run([str(core_test)],check=True)
 sources = [str(p) for p in sorted((root/'Sources').rglob('*.swift')) if p.name != 'ReversedEngineeringIcseeApp.swift']
+credential_test = build / 'credential-tests'
+subprocess.run(['swiftc', '-swift-version', '6', '-parse-as-library', *sources,
+                str(root/'Tests/CredentialStoreTest.swift'), '-o', str(credential_test)], check=True)
+subprocess.run([str(credential_test)], check=True)
 locale_app = build / 'LocalizationFixture.app'
 locale_binary = locale_app / 'Contents/MacOS/localization-tests'
 locale_binary.parent.mkdir(parents=True, exist_ok=True)

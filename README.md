@@ -69,6 +69,34 @@ Packages land in `dist/release/`. See [release maintenance](docs/RELEASING.md) f
 2. Enter the camera's local IP/hostname, RTSP port (usually `554`) and channel (usually `1`). Find the address in your router's connected-device list or the camera's network settings.
 3. Click **Connect**, then enter the camera's **local device** username and password. These can differ from your iCSee cloud credentials.
 4. Enable **Save in macOS Keychain** only if you want to remember credentials.
+
+Saved passwords remain in macOS Keychain; they are not written to preferences, logs or repository files.
+The system prompt asks for your **Mac login/Keychain password**, not your camera password.
+Denied or cancelled Keychain access is reported separately and does not erase existing credentials.
+
+Public builds currently use ad-hoc signing. A new build has a different signing identity, so
+**Always Allow may need to be granted again after an update**. A normal relaunch of the same
+trusted build should retain access. Keep the login Keychain unlocked under your normal macOS policy.
+
+For stable identity across local builds and downloaded updates, run once from a trusted source checkout:
+
+```sh
+python3 Tools/local_sign.py --create "/path/to/Reversed engineering Icsee.app"
+```
+
+This generates a self-signed code-signing identity on your Mac. Its private key is imported
+non-extractable into the default Keychain, using in-memory pipes, with signing access for
+`/usr/bin/codesign`. No root certificate trust settings are changed. This is **not** Developer ID
+signing or notarization. The identity is local to that Keychain and is not uploaded to GitHub.
+Existing camera items may require one final **Always Allow** authorization after this change.
+
+`build.py` automatically reuses that identity when available. After replacing the app with a new
+public download, run `python3 Tools/local_sign.py "/path/to/Reversed engineering Icsee.app"`
+**before opening it** to reuse the same identity. Release packaging explicitly stays ad-hoc;
+it does not distribute your local signing identity. Do not delete/recreate the identity on every build.
+An expired or lost identity requires a new authorization. `--sign-identity FINGERPRINT` selects
+another signing certificate, and `--sign-identity -` explicitly creates an ad-hoc build.
+
 5. Try **Substream** if the main stream is too heavy or unsupported.
 
 Do not forward camera ports to the public internet. Local RTSP is not an encrypted transport; use a trusted LAN or VPN.
