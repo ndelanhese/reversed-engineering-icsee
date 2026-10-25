@@ -59,11 +59,11 @@ public enum DecoderFailure: Sendable {
     case authentication, forbidden, unreachable, streamNotFound, videoMissing
     public var message: String {
         switch self {
-        case .authentication: "A câmera recusou o login RTSP (401). Confira usuário e senha locais do dispositivo."
-        case .forbidden: "A câmera bloqueou acesso RTSP (403). Confira permissões do usuário no dispositivo."
-        case .unreachable: "Não foi possível alcançar a câmera. Confira endereço, porta e conexão à rede."
-        case .streamNotFound: "A câmera não encontrou esse fluxo (404). Confira canal e opção Fluxo leve."
-        case .videoMissing: "A conexão não disponibilizou vídeo nesse canal. Confira configurações da câmera."
+        case .authentication: String(localized: "The camera rejected RTSP login (401). Check the device's local username and password.")
+        case .forbidden: String(localized: "The camera blocked RTSP access (403). Check the device user's permissions.")
+        case .unreachable: String(localized: "Could not reach the camera. Check its address, port and network connection.")
+        case .streamNotFound: String(localized: "The camera could not find this stream (404). Check the channel and Substream setting.")
+        case .videoMissing: String(localized: "This channel did not provide video. Check the camera settings.")
         }
     }
 }
@@ -119,8 +119,8 @@ public enum CameraError: LocalizedError {
     case frameTooLarge
     public var errorDescription: String? {
         switch self {
-        case .invalidEndpoint: "Confira endereço, porta, canal e usuário da câmera."
-        case .frameTooLarge: "O fluxo de vídeo ultrapassou o limite de um quadro."
+        case .invalidEndpoint: String(localized: "Check the camera address, port, channel and username.")
+        case .frameTooLarge: String(localized: "The video stream exceeded the frame size limit.")
         }
     }
 }

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.1 — 2026-10-25
+
+- Follow macOS preferred app language, including per-app overrides, using native English and Brazilian Portuguese resources with an English fallback.
+- Localize controls, dynamic camera labels, diagnostics, accessibility text, tooltips and the local-network permission description.
+- Preserve camera names, connection settings and saved credentials when the app language changes.
+- Add checks for preferred-language ordering, regional variants, unsupported-language fallback, typed interpolation and rendered SwiftUI in both languages.
+
 ## 0.3.0 — 2026-10-25
 
 - Added an original native app icon in Finder, Dock and all builds, with a reproducible artwork generator.

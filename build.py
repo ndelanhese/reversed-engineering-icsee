@@ -20,6 +20,11 @@ binary = app / 'Contents' / 'MacOS' / executable_name
 resources = app / 'Contents/Resources'
 binary.parent.mkdir(parents=True, exist_ok=True)
 resources.mkdir(parents=True, exist_ok=True)
+localizations = sorted((root / 'Resources').glob('*.lproj'))
+for previous in resources.glob('*.lproj'):
+    shutil.rmtree(previous)
+for localization in localizations:
+    shutil.copytree(localization, resources / localization.name, dirs_exist_ok=True)
 shutil.copy2(root / 'Assets/AppIcon.icns', resources / 'AppIcon.icns')
 for name in ['LICENSE', 'THIRD_PARTY_NOTICES.md']:
     shutil.copy2(root / name, resources / name)
@@ -59,8 +64,9 @@ info = {'CFBundleName': app_name, 'CFBundleDisplayName': app_name,
         'CFBundlePackageType': 'APPL', 'CFBundleShortVersionString': version['version'],
         'CFBundleVersion': str(version['build']), 'LSMinimumSystemVersion': '14.0',
         'CFBundleIconFile': 'AppIcon.icns', 'LSApplicationCategoryType': 'public.app-category.video',
+        'CFBundleDevelopmentRegion': 'en', 'CFBundleLocalizations': [p.stem for p in localizations],
         'NSHighResolutionCapable': True,
-        'NSLocalNetworkUsageDescription': app_name + ' conecta diretamente às suas câmeras na rede local.'}
+        'NSLocalNetworkUsageDescription': app_name + ' connects directly to cameras on your local network.'}
 with (app / 'Contents' / 'Info.plist').open('wb') as handle:
     plistlib.dump(info, handle)
 subprocess.run(['codesign', '--force', '--sign', '-', str(app)], check=True)

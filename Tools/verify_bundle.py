@@ -17,6 +17,14 @@ def run(arguments, **kwargs):
 
 def verify(app):
     info = plistlib.loads((app / 'Contents/Info.plist').read_bytes())
+    if info.get('CFBundleDevelopmentRegion') != 'en' or set(info.get('CFBundleLocalizations', [])) != {'en', 'pt-BR'}:
+        raise SystemExit('FAIL: bundle must declare native English and Brazilian Portuguese localization')
+    for language in ['en', 'pt-BR']:
+        for name in ['Localizable.strings', 'InfoPlist.strings']:
+            catalog = app / f'Contents/Resources/{language}.lproj' / name
+            if not catalog.is_file():
+                raise SystemExit(f'FAIL: missing localization resource: {language}/{name}')
+            run(['plutil', '-lint', str(catalog)])
     icon = app / 'Contents/Resources' / info.get('CFBundleIconFile', '')
     if not icon.is_file() or icon.read_bytes()[:4] != b'icns':
         raise SystemExit('FAIL: missing or invalid native app icon')

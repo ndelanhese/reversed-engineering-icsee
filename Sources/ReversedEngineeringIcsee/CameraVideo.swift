@@ -37,26 +37,26 @@ struct CameraStage: View {
         VStack(spacing: 0) {
             HStack(spacing: 16) {
                 if let back {
-                    Button(action: back) { Label("Voltar", systemImage: "chevron.left") }
+                    Button(action: back) { Label("Back", systemImage: "chevron.left") }
                         .keyboardShortcut(.cancelAction)
                 }
                 Text(camera.name).font(.headline).lineLimit(1)
                 if session.state == .live {
-                    Label("Ao vivo", systemImage: "circle.fill").font(.caption).foregroundStyle(.green)
+                    Label("Live", systemImage: "circle.fill").font(.caption).foregroundStyle(.green)
                 }
                 Spacer(minLength: 8)
                 if session.state == .live || session.state == .connecting {
-                    Button("Parar", systemImage: "stop.fill") { session.stop() }
-                } else { Button("Conectar", action: connect) }
+                    Button("Stop", systemImage: "stop.fill") { session.stop() }
+                } else { Button("Connect", action: connect) }
                 if let popup {
                     Button(action: popup) { Image(systemName: "rectangle.on.rectangle") }
-                        .help("Abrir popup flutuante").accessibilityLabel("Abrir popup")
+                        .help("Open floating window").accessibilityLabel("Open window")
                 }
                 Button(action: fullscreen) {
                     Image(systemName: isFullscreen ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
                 }
-                .help(isFullscreen ? "Sair da tela cheia" : "Tela cheia")
-                .accessibilityLabel(isFullscreen ? "Sair da tela cheia" : "Tela cheia")
+                .help(isFullscreen ? String(localized: "Exit full screen") : String(localized: "Full screen"))
+                .accessibilityLabel(isFullscreen ? String(localized: "Exit full screen") : String(localized: "Full screen"))
             }
             .buttonStyle(.borderless).foregroundStyle(.white)
             .padding(.horizontal, 18).padding(.vertical, 12).background(Color(white: 0.08))

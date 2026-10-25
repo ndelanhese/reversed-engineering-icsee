@@ -8,10 +8,10 @@ final class CameraSession {
         case stopped, connecting, live, failed(String)
         var label: String {
             switch self {
-            case .stopped: "Desconectada"
-            case .connecting: "Conectando…"
-            case .live: "Ao vivo"
-            case .failed: "Falha na conexão"
+            case .stopped: String(localized: "Disconnected")
+            case .connecting: String(localized: "Connecting…")
+            case .live: String(localized: "Live")
+            case .failed: String(localized: "Connection failed")
             }
         }
     }
@@ -36,7 +36,7 @@ final class CameraSession {
             let bundled = Bundle.main.url(forAuxiliaryExecutable: "ffmpeg")?.path
             guard let executable = ([bundled].compactMap { $0 } + ["/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg"])
                 .first(where: { FileManager.default.isExecutableFile(atPath: $0) }) else {
-                state = .failed("FFmpeg não encontrado neste Mac.")
+                state = .failed(String(localized: "FFmpeg was not found on this Mac."))
                 return
             }
             let child = Process()
@@ -91,7 +91,7 @@ final class CameraSession {
                     if streamHasTimedOut(elapsed: started.duration(to: now),
                                          sinceLastFrame: self.lastFrameAt.map { $0.duration(to: now) }) {
                         self.stop()
-                        self.state = .failed("Câmera parou de enviar vídeo. Confira rede e credenciais; conecte novamente.")
+                        self.state = .failed(String(localized: "The camera stopped sending video. Check the network and credentials, then reconnect."))
                         return
                     }
                 }
@@ -117,7 +117,7 @@ final class CameraSession {
             return
         }
         stop()
-        state = .failed(failure?.message ?? "Fluxo encerrado pela câmera. Tente conectar novamente ou selecione Fluxo leve nos ajustes.")
+        state = .failed(failure?.message ?? String(localized: "The camera ended the stream. Reconnect or select Substream in camera settings."))
     }
     func stop() {
         generation = UUID()
