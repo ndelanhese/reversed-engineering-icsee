@@ -131,7 +131,7 @@ Original app source and icon are MIT licensed. Licenses are included in the app 
 
 ## Scope
 
-Local RTSP video, grid, cinema, floating windows and native fullscreen. No audio, PTZ, recording or cloud login.
+Local RTSP video, grid, cinema, floating windows, native fullscreen and a menu bar camera preview. No audio, PTZ, recording or cloud login.
 Remote access requires an existing VPN. Compatibility is firmware-dependent; these builds do not certify every iCSee device.
 No automatic updater is installed.
 

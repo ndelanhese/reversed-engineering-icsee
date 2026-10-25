@@ -1,14 +1,6 @@
 import SwiftUI
 import AppKit
 
-@MainActor
-final class CameraAppLifecycle: NSObject, NSApplicationDelegate {
-    var store: CameraStore?
-    var windows: CameraWindows?
-    func applicationWillTerminate(_ notification: Notification) { windows?.closeAll(); store?.stopAll() }
-    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
-}
-
 @main
 struct ReversedEngineeringIcseeApp: App {
     @NSApplicationDelegateAdaptor(CameraAppLifecycle.self) private var lifecycle
@@ -16,8 +8,7 @@ struct ReversedEngineeringIcseeApp: App {
     @ViewState private var windows = CameraWindows()
     var body: some Scene {
         Window("Reversed engineering Icsee", id: "main") {
-            CameraBoard(store: store, windows: windows).frame(minWidth: 880, minHeight: 580)
-                .onAppear { lifecycle.store = store; lifecycle.windows = windows }
+            MainCameraWindow(store: store, windows: windows, lifecycle: lifecycle)
         }
         .defaultSize(width: 1160, height: 760)
         .commands {

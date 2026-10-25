@@ -65,6 +65,8 @@ enum CredentialStore {
 final class CameraStore {
     var cameras: [Camera]
     var sessions: [UUID: CameraSession] = [:]
+    private(set) var menuBarCameraID: UUID?
+    var menuBarCamera: Camera? { cameras.first { $0.id == menuBarCameraID } ?? cameras.first }
     private let defaults: UserDefaults
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -75,7 +77,19 @@ final class CameraStore {
             cameras = []
         }
         for camera in cameras { sessions[camera.id] = CameraSession() }
+        let savedPreview = defaults.string(forKey: "menuBarCameraID").flatMap(UUID.init(uuidString:))
+        menuBarCameraID = cameras.contains { $0.id == savedPreview } ? savedPreview : cameras.first?.id
+        persistMenuBarCamera()
         persist()
+    }
+    func selectMenuBarCamera(_ id: UUID) {
+        guard cameras.contains(where: { $0.id == id }) else { return }
+        menuBarCameraID = id
+        persistMenuBarCamera()
+    }
+    private func persistMenuBarCamera() {
+        if let menuBarCameraID { defaults.set(menuBarCameraID.uuidString, forKey: "menuBarCameraID") }
+        else { defaults.removeObject(forKey: "menuBarCameraID") }
     }
     func session(_ camera: Camera) -> CameraSession { sessions[camera.id]! }
     func save(_ camera: Camera) {
@@ -86,11 +100,16 @@ final class CameraStore {
             cameras.append(camera)
             sessions[camera.id] = CameraSession()
         }
+        if menuBarCameraID == nil { selectMenuBarCamera(camera.id) }
         persist()
     }
     func remove(_ camera: Camera) {
         sessions.removeValue(forKey: camera.id)?.stop()
         cameras.removeAll { $0.id == camera.id }
+        if menuBarCameraID == camera.id {
+            menuBarCameraID = cameras.first?.id
+            persistMenuBarCamera()
+        }
         CredentialStore.remove(camera.id)
         persist()
     }

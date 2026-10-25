@@ -55,3 +55,10 @@
 "Your cameras" = "Suas câmeras";
 
 "Could not read macOS Keychain (%lld). Saved credentials were kept. The prompt asks for your Mac login password." = "Não foi possível ler o Chaves do macOS (%lld). As credenciais salvas foram mantidas. O aviso pede a senha de início de sessão do Mac.";
+
+"Preview camera" = "Câmera da prévia";
+"Open app" = "Abrir app";
+"Quit" = "Sair";
+"Hover for camera preview. Click to keep it open." = "Passe o mouse para ver a câmera. Clique para manter aberto.";
+"Default preview camera" = "Câmera padrão da prévia";
+"Use for menu bar preview" = "Usar na prévia da barra de menus";

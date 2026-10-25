@@ -16,6 +16,7 @@ Sem vínculo com iCSee ou Xiongmai. Compatibilidade depende do firmware e do RTS
 - Renomear sem interromper vídeo.
 - Modo cinema, popup flutuante redimensionável e tela cheia nativa.
 - Mesma conexão compartilhada entre as visualizações de uma câmera.
+- Ícone na barra de menus com prévia ao passar o mouse e câmera padrão salva.
 - Credenciais locais, salvamento opcional no Chaves e tentativa de compatibilidade Sofia após erro de autenticação.
 - Diagnóstico de conexão e detecção de vídeo congelado.
 
@@ -109,7 +110,15 @@ Não exponha portas das câmeras na internet. RTSP local não é transporte crip
 | Renomear / configurar conexão | Menu **⋯** |
 | Fechar popup | Botão nativo ou `Command + W` |
 
-Fechar popup mantém transmissão compartilhada. Fechar a última janela encerra app e transmissões.
+Fechar popup mantém a transmissão compartilhada. Fechar a janela principal mantém o app e as câmeras ativas na barra de menus. Use **Sair** na prévia ou `Command + Q` para encerrar o app e todas as transmissões.
+
+## Prévia na barra de menus
+
+Passe o mouse sobre o ícone de lente na barra de menus do macOS para ver a câmera selecionada. Entre no painel para usar os controles; sair do ícone e do painel fecha a prévia. Clique no ícone para manter o painel aberto e clique novamente ou fora dele para fechar.
+
+Escolha **Câmera da prévia** no painel ou **⋯ → Usar na prévia da barra de menus** no cartão da câmera. A escolha permanece entre aberturas do app. Renomear preserva a seleção; excluir a câmera selecionada escolhe outra câmera salva.
+
+A prévia compartilha a conexão existente com a grade e os popups. Se estiver desconectada, clique **Conectar** para informar ou carregar credenciais salvas. Passar o mouse não pede senha nem inicia conexão automaticamente. **Abrir app** reabre a janela principal; **Popup flutuante** abre uma visualização maior.
 
 ## Privacidade e limites
 
@@ -125,7 +134,7 @@ python3 test.py
 python3 test.py --interactive
 ```
 
-Primeiro comando verifica núcleo e seleção nativa de idioma, sem câmera nem sessão gráfica. Segundo adiciona testes de janelas; terceiro verifica interface renderizada em inglês/português, tela cheia e Esc. Ambos precisam de sessão gráfica. CI também compila FFmpeg e valida DMG/ZIP com vídeos H.264/HEVC sintéticos, sem Homebrew no caminho. Primeiro build de empacotamento baixa fonte oficial do FFmpeg; não acessa câmeras reais.
+Primeiro comando verifica núcleo e seleção nativa de idioma, sem câmera nem sessão gráfica. Segundo adiciona testes de janelas; terceiro verifica interface renderizada em inglês/português, prévia da barra de menus, reabertura da janela, tela cheia e Esc. Ambos precisam de sessão gráfica. CI também compila FFmpeg e valida DMG/ZIP com vídeos H.264/HEVC sintéticos, sem Homebrew no caminho. Primeiro build de empacotamento baixa fonte oficial do FFmpeg; não acessa câmeras reais.
 
 Leia [arquitetura](docs/ARCHITECTURE.md), [investigação](docs/REVERSE_ENGINEERING.md) e [regras de contribuição](CONTRIBUTING.md). Issues e PRs aceitam português ou inglês. Não envie senhas, vídeos privados, APKs ou dados da sua rede.
 
