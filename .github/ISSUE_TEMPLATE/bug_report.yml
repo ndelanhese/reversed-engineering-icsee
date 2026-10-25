@@ -1,0 +1,35 @@
+name: Bug or camera compatibility
+description: Report a reproducible problem using sanitized information.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        English or português accepted. For vulnerabilities, use Security → Report a vulnerability.
+        Do not upload passwords, authenticated URLs, serial numbers, cloud IDs, raw logs, APKs or camera footage.
+  - type: input
+    id: version
+    attributes:
+      label: CamMac and macOS versions
+      placeholder: CamMac 0.2.1, macOS version, Apple Silicon model
+    validations:
+      required: true
+  - type: input
+    id: camera
+    attributes:
+      label: Camera model and firmware (if known)
+      description: No serial number, address or cloud/device ID.
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps, expected behavior and observed behavior
+      description: Include the app's safe error message and whether the device works in iCSee. Replace addresses with camera.example.
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy check
+      options:
+        - label: I removed credentials, device identifiers and private footage from this report.
+          required: true
