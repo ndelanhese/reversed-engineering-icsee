@@ -7,10 +7,14 @@ import plistlib
 import shutil
 import subprocess
 
+from Tools.local_sign import existing_identity, sign
+
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('output', nargs='?', help='Destination .app bundle.')
 parser.add_argument('--bundle-ffmpeg', action='store_true', help='Include the decoder built by Tools/build_ffmpeg.py.')
+parser.add_argument('--sign-identity', help='Certificate fingerprint; "-" forces ad-hoc signing. Default: reuse local identity if present.')
 args = parser.parse_args()
+identity = args.sign_identity or existing_identity() or "-"
 root = pathlib.Path(__file__).resolve().parent
 version = json.loads((root / 'version.json').read_text())
 app_name = 'Reversed engineering Icsee'
@@ -69,6 +73,5 @@ info = {'CFBundleName': app_name, 'CFBundleDisplayName': app_name,
         'NSLocalNetworkUsageDescription': app_name + ' connects directly to cameras on your local network.'}
 with (app / 'Contents' / 'Info.plist').open('wb') as handle:
     plistlib.dump(info, handle)
-subprocess.run(['codesign', '--force', '--sign', '-', str(app)], check=True)
-subprocess.run(['codesign', '--verify', '--deep', '--strict', str(app)], check=True)
+sign(app, identity)
 print(app)

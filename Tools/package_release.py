@@ -41,7 +41,7 @@ def main():
         image_root = stage / 'image'
         image_root.mkdir()
         app = image_root / APP_NAME
-        run([sys.executable, str(ROOT / 'build.py'), str(app), '--bundle-ffmpeg'])
+        run([sys.executable, str(ROOT / 'build.py'), str(app), '--bundle-ffmpeg', '--sign-identity', '-'])
         verify(app)
         (image_root / 'Applications').symlink_to('/Applications')
         instructions = f'''Reversed engineering Icsee {version}
@@ -100,6 +100,10 @@ Licenses and build configuration: app Contents/Resources/ThirdParty/FFmpeg.
     (output / 'SHA256SUMS.txt').write_text('\n'.join(checksum_lines) + '\n')
     notes = f'''Native macOS viewer for iCSee / Xiongmai cameras. Apple Silicon, macOS 14+.
 
+## Changes
+
+Keychain read failures no longer discard saved credentials. Local builds can reuse a persistent signing identity to preserve authorization across rebuilds; see README. Public builds remain ad-hoc signed.
+
 ## Instalar / Install
 
 - Download **{prefix}.dmg**, open it, and drag the app to **Applications**. ZIP is an alternative.
@@ -112,6 +116,7 @@ Licenses and build configuration: app Contents/Resources/ThirdParty/FFmpeg.
 ## Signing / Assinatura
 
 Ad-hoc signed, **not Developer ID signed or notarized**. macOS may block the first launch.
+Ad-hoc updates change Keychain identity and may require reauthorization; see README for persistent local signing.
 After checking the source and download, use System Settings → Privacy & Security → Open Anyway if you trust it.
 Em português: Ajustes do Sistema → Privacidade e Segurança → Abrir Mesmo Assim.
 [Apple's instructions](https://support.apple.com/en-us/102445). Gatekeeper is not disabled by the installer.

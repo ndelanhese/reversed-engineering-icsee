@@ -23,14 +23,22 @@ struct Credentials: Codable {
 enum CredentialStore {
     // Keep the legacy service name so renaming the app preserves saved credentials.
     private static let service = "local.CamMac.camera"
-    static func load(_ id: UUID) -> Credentials? {
+    static func load(_ id: UUID) throws -> Credentials? {
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service, kSecAttrAccount as String: id.uuidString,
             kSecReturnData as String: true, kSecMatchLimit as String: kSecMatchLimitOne]
         var result: CFTypeRef?
-        guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess,
-              let data = result as? Data else { return nil }
-        return try? JSONDecoder().decode(Credentials.self, from: data)
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        return try decode(status: status, data: result as? Data)
+    }
+    static func decode(status: OSStatus, data: Data?) throws -> Credentials? {
+        if status == errSecItemNotFound { return nil }
+        guard status == errSecSuccess else {
+            throw NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: [
+                NSLocalizedDescriptionKey: String(localized: "Could not read macOS Keychain (\(Int(status))). Saved credentials were kept. The prompt asks for your Mac login password.")])
+        }
+        guard let data else { throw CocoaError(.coderReadCorrupt) }
+        return try JSONDecoder().decode(Credentials.self, from: data)
     }
     static func save(_ credentials: Credentials, for id: UUID) throws {
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
