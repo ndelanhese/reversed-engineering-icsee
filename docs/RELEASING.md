@@ -2,6 +2,8 @@
 
 Distribution target: Apple Silicon, macOS 14+. Runtime users download a DMG or ZIP; they do not need a compiler, Python or Homebrew. These are ad-hoc signed builds, **not Developer ID signed or notarized**. The per-app approval flow is documented in both README files and each release; no installer changes system security settings.
 
+Release notes and installer instructions are written in English, with a link to the separate [Brazilian Portuguese guide](../README.pt-BR.md#baixar-e-instalar). Keep translations out of the English text. The app interface continues to follow macOS language preferences.
+
 ## Local reproduction
 
 Use an Apple Silicon Mac with Apple's Swift 6 toolchain and Python 3.12+. System tools `clang`, `make`, `codesign`, `iconutil`, `sips`, `ditto` and `hdiutil` are used. The first decoder build downloads source from the official FFmpeg site; subsequent identical builds can use the verified local cache.
@@ -9,7 +11,7 @@ Use an Apple Silicon Mac with Apple's Swift 6 toolchain and Python 3.12+. System
 ```sh
 python3 test.py --core-only
 python3 Tools/build_ffmpeg.py
-python3 Tools/package_release.py --tag v0.3.1
+python3 Tools/package_release.py --tag v0.3.3
 ```
 
 The `--tag` check is optional for local previews and mandatory in tag-triggered automation. It refuses a tag that differs from `version.json`.

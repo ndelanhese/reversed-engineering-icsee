@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.3 — 2026-10-25
+
+- Use English for release notes and DMG installation instructions, with a link to the separate Brazilian Portuguese guide.
+- Keep the app interface following macOS language preferences.
+- Bring the Brazilian Portuguese credential-storage guide up to date.
+
+## 0.3.2 — 2026-10-25
+
+- Preserve saved credentials when Keychain access is denied or cancelled.
+- Add a persistent machine-local signing identity that local builds can reuse across rebuilds.
+- Document ad-hoc update reauthorization and the one-time local-signing migration.
+
 ## 0.3.1 — 2026-10-25
 
 - Follow macOS preferred app language, including per-app overrides, using native English and Brazilian Portuguese resources with an English fallback.

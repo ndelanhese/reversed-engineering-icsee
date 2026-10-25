@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        English or português accepted. For vulnerabilities, use Security → Report a vulnerability.
+        English or Brazilian Portuguese accepted. For vulnerabilities, use Security → Report a vulnerability.
         Do not upload passwords, authenticated URLs, serial numbers, cloud IDs, raw logs, APKs or camera footage.
   - type: input
     id: version

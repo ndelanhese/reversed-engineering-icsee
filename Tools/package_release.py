@@ -46,16 +46,18 @@ def main():
         (image_root / 'Applications').symlink_to('/Applications')
         instructions = f'''Reversed engineering Icsee {version}
 
-Instalar / Install: arraste o app para Applications / drag the app to Applications.
-Requer / Requires: Apple Silicon, macOS 14+. FFmpeg included. No Homebrew required.
+Install: drag the app to Applications.
+Requires: Apple Silicon, macOS 14+. FFmpeg included. No Homebrew required.
 
-Assinatura local ad hoc, sem notarização / Ad-hoc signed, not notarized.
-Se o macOS bloquear e você confiar neste download: Ajustes do Sistema > Privacidade
-e Segurança > Abrir Mesmo Assim. If macOS blocks it and you trust this download:
+Ad-hoc signed, not notarized.
+If macOS blocks it and you trust this download:
 System Settings > Privacy & Security > Open Anyway.
 https://support.apple.com/en-us/102445
 
-Código / Source: {REPOSITORY}/tree/v{version}
+Brazilian Portuguese installation guide (pt-BR):
+{REPOSITORY}/blob/v{version}/README.pt-BR.md#baixar-e-instalar
+
+Source: {REPOSITORY}/tree/v{version}
 This app uses FFmpeg under LGPL-2.1-or-later. Exact unmodified FFmpeg source:
 {source_url}
 Licenses and build configuration: app Contents/Resources/ThirdParty/FFmpeg.
@@ -102,23 +104,22 @@ Licenses and build configuration: app Contents/Resources/ThirdParty/FFmpeg.
 
 ## Changes
 
-Keychain read failures no longer discard saved credentials. Local builds can reuse a persistent signing identity to preserve authorization across rebuilds; see README. Public builds remain ad-hoc signed.
+See the [changelog]({REPOSITORY}/blob/v{version}/CHANGELOG.md) for version-specific changes.
 
-## Instalar / Install
+[Brazilian Portuguese guide (pt-BR)]({REPOSITORY}/blob/v{version}/README.pt-BR.md#baixar-e-instalar)
+
+## Install
 
 - Download **{prefix}.dmg**, open it, and drag the app to **Applications**. ZIP is an alternative.
-- Baixe **{prefix}.dmg**, abra e arraste o app para **Applications**. ZIP também disponível.
 - FFmpeg is included; no Homebrew, compiler or Python needed to run the app.
 - Original app icon included in Finder and Dock. Existing camera profiles and Keychain service are preserved.
 - Interface follows macOS preferred app language: English or Brazilian Portuguese, with English fallback. Restart after changing the per-app language preference.
-- Interface segue idioma preferido no macOS: inglês ou português brasileiro. Reabra após mudar idioma específico do app.
 
-## Signing / Assinatura
+## Signing
 
 Ad-hoc signed, **not Developer ID signed or notarized**. macOS may block the first launch.
 Ad-hoc updates change Keychain identity and may require reauthorization; see README for persistent local signing.
 After checking the source and download, use System Settings → Privacy & Security → Open Anyway if you trust it.
-Em português: Ajustes do Sistema → Privacidade e Segurança → Abrir Mesmo Assim.
 [Apple's instructions](https://support.apple.com/en-us/102445). Gatekeeper is not disabled by the installer.
 
 ## Licensing and integrity

@@ -68,6 +68,34 @@ Pacotes ficam em `dist/release/`. Veja [manutenção de releases](docs/RELEASING
 4. Marque **Salvar no Chaves** se quiser lembrar as credenciais.
 5. Tente **Fluxo leve** se o principal estiver pesado ou incompatível.
 
+### Credenciais salvas e Chaves
+
+Senhas salvas permanecem no Chaves do macOS; não são gravadas em preferências, logs ou arquivos do repositório.
+O aviso do sistema pede a **senha de início de sessão/Chaves do Mac**, não a senha da câmera.
+Falhas ou cancelamentos de acesso são informados separadamente e não apagam credenciais existentes.
+
+Builds públicos usam assinatura ad hoc. Cada build novo muda a identidade da assinatura, então a opção
+**Permitir Sempre** pode precisar ser autorizada novamente após uma atualização. Reabrir o mesmo build
+já autorizado deve preservar o acesso. Mantenha o Chaves de início de sessão desbloqueado conforme sua política normal do macOS.
+
+Para manter a mesma identidade entre builds locais e atualizações baixadas, execute uma vez a partir de um checkout confiável:
+
+```sh
+python3 Tools/local_sign.py --create "/caminho/para/Reversed engineering Icsee.app"
+```
+
+Isso cria uma identidade de assinatura autoassinada no Mac. A chave privada é importada como não exportável
+no Chaves padrão, por pipes em memória, com acesso de assinatura para `/usr/bin/codesign`.
+Nenhuma configuração de confiança de certificados raiz é alterada. Isso **não** é assinatura Developer ID
+nem notarização. A identidade pertence ao Chaves local e não é enviada ao GitHub.
+Itens existentes podem precisar de uma última autorização **Permitir Sempre** após essa mudança.
+
+`build.py` reutiliza essa identidade automaticamente quando disponível. Após substituir o app por um download
+público novo, execute `python3 Tools/local_sign.py "/caminho/para/Reversed engineering Icsee.app"`
+**antes de abri-lo**. O empacotamento público continua usando assinatura ad hoc e não distribui sua identidade local.
+Não apague nem recrie a identidade a cada build. Identidade expirada ou perdida exige nova autorização.
+Use `--sign-identity FINGERPRINT` para selecionar outro certificado ou `--sign-identity -` para gerar um build ad hoc.
+
 Não exponha portas das câmeras na internet. RTSP local não é transporte criptografado; use rede confiável ou VPN.
 
 | Ação | Controle |
