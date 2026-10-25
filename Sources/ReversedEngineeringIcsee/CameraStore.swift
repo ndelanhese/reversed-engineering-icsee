@@ -10,12 +10,29 @@ struct Camera: Identifiable, Codable, Equatable {
     var port = 554
     var channel = 1
     var substream = false
+    var onvifPort = 8899
+    var controlPort = 34567
     var endpoint: CameraEndpoint {
         CameraEndpoint(host: host, port: port, channel: channel, substream: substream)
     }
 }
 
-struct Credentials: Codable {
+extension Camera {
+    enum CodingKeys: String, CodingKey { case id, name, host, port, channel, substream, onvifPort, controlPort }
+    init(from decoder: any Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(UUID.self, forKey: .id)
+        name = try values.decode(String.self, forKey: .name)
+        host = try values.decode(String.self, forKey: .host)
+        port = try values.decodeIfPresent(Int.self, forKey: .port) ?? 554
+        channel = try values.decodeIfPresent(Int.self, forKey: .channel) ?? 1
+        substream = try values.decodeIfPresent(Bool.self, forKey: .substream) ?? false
+        onvifPort = try values.decodeIfPresent(Int.self, forKey: .onvifPort) ?? 8899
+        controlPort = try values.decodeIfPresent(Int.self, forKey: .controlPort) ?? 34567
+    }
+}
+
+struct Credentials: Codable, Sendable {
     var username: String
     var password: String
 }

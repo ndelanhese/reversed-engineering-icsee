@@ -24,6 +24,8 @@ final class CameraSession {
     private var deadline: Task<Void, Never>?
     private var lastFrameAt: ContinuousClock.Instant?
     private var generation = UUID()
+    @ObservationIgnored private var controlCredentials: Credentials?
+    func credentialsForControls() -> Credentials? { controlCredentials }
 
     func start(camera: Camera, credentials: Credentials) {
         start(camera: camera, credentials: credentials, useSofiaQuery: false)
@@ -51,6 +53,7 @@ final class CameraSession {
             child.standardError = errors
             try child.run()
             process = child
+            controlCredentials = credentials
             state = .connecting
             let token = generation
             try input.fileHandleForWriting.write(contentsOf: playlist)
@@ -133,5 +136,6 @@ final class CameraSession {
         frames = 0
         lastFrameAt = nil
         state = .stopped
+        controlCredentials = nil
     }
 }

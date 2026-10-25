@@ -35,6 +35,8 @@ enum LocalizationTest {
               en: "Double-click for cinema mode", pt: "Duplo clique para modo cinema", "Tooltip")
         check(String(localized: "Preview camera"), en: "Preview camera", pt: "Câmera da prévia", "Menu camera selector")
         check(String(localized: "Use for menu bar preview"), en: "Use for menu bar preview", pt: "Usar na prévia da barra de menus", "Menu default action")
+        check(String(localized: "Camera controls"), en: "Camera controls", pt: "Controles da câmera", "Native camera controls")
+        check(String(localized: "Image settings"), en: "Image settings", pt: "Ajustes de imagem", "Image settings title")
         let cameraName = "Entrada 100% %@ — 🚪"
         check(String(localized: "Connect to \(cameraName)"),
               en: "Connect to \(cameraName)", pt: "Conectar a \(cameraName)", "Interpolated camera name")

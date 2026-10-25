@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.0 — 2026-10-25
+
+- Add native ONVIF movement, Stop, profile selection, presets and camera-provided image controls.
+- Add authenticated DVRIP discovery and structured local settings with conflict-safe writes and readback verification.
+- Reuse active video credentials in memory and preserve legacy profiles with configurable control-port defaults.
+- Show per-feature authentication/transport failures and protect unsaved drafts during navigation and reload.
+- Wait for pending movement Stop and acknowledged restart connection holds before normal Quit.
+- Add synthetic protocol/model/native lifecycle fixtures; validate bounded ONVIF commands and reversible brightness edits on two owner-controlled cameras.
+
 ## 0.4.0 — 2026-10-25
 
 - Add an original menu bar icon and native hover preview using the existing camera stream.

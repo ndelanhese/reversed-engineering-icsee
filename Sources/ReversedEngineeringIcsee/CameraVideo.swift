@@ -33,6 +33,7 @@ struct CameraStage: View {
     var fullscreen: () -> Void
     var isFullscreen = false
     var connect: () -> Void
+    var controls: (() -> Void)? = nil
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 16) {
@@ -45,6 +46,10 @@ struct CameraStage: View {
                     Label("Live", systemImage: "circle.fill").font(.caption).foregroundStyle(.green)
                 }
                 Spacer(minLength: 8)
+                if let controls {
+                    Button(action: controls) { Image(systemName: "slider.horizontal.3") }
+                        .help("Camera controls").accessibilityLabel("Camera controls")
+                }
                 if session.state == .live || session.state == .connecting {
                     Button("Stop", systemImage: "stop.fill") { session.stop() }
                 } else { Button("Connect", action: connect) }

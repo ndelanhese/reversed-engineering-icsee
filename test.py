@@ -7,6 +7,7 @@ import re
 import shutil
 import subprocess
 import sys
+import select
 
 parser = argparse.ArgumentParser(description=__doc__)
 modes = parser.add_mutually_exclusive_group()
@@ -22,7 +23,49 @@ core_test = build / 'core-tests'
 subprocess.run(['swiftc','-swift-version','6','-parse-as-library',str(core),
                 str(root/'Tests/CoreSelfTest.swift'),'-o',str(core_test)],check=True)
 subprocess.run([str(core_test)],check=True)
+
+def run_control_fixture(binary, arguments=(), server_arguments=(), timeout=25):
+    server = subprocess.Popen([sys.executable, str(root/'Tests/ControlFixtureServer.py'), *server_arguments],
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    try:
+        ready, _, _ = select.select([server.stdout], [], [], 10)
+        if not ready:
+            server.terminate()
+            try:
+                _, diagnostics = server.communicate(timeout=5)
+            except subprocess.TimeoutExpired:
+                server.kill()
+                _, diagnostics = server.communicate()
+            raise RuntimeError('Local control fixture did not start in time. ' + diagnostics[-2000:])
+        ports = json.loads(server.stdout.readline())
+        subprocess.run([str(binary), str(ports['onvifPort']), str(ports['controlPort']), *arguments],
+                       check=True, timeout=timeout)
+    finally:
+        server.terminate()
+        try:
+            server.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            server.kill()
+            server.wait()
+
 sources = [str(p) for p in sorted((root/'Sources').rglob('*.swift')) if p.name != 'ReversedEngineeringIcseeApp.swift']
+control_tests = [
+    ('onvif-control', ['Sources/CameraControl/ONVIFTypes.swift', 'Sources/CameraControl/ONVIFClient.swift'], 'Tests/ONVIFControlTest.swift', 30),
+    ('dvrip-control', ['Sources/CameraCore/CameraCore.swift', 'Sources/CameraControl/DeviceJSON.swift', 'Sources/CameraControl/DVRIPClient.swift'], 'Tests/DVRIPControlTest.swift', 30),
+    ('device-settings-editor', ['Sources/CameraControl/DeviceJSON.swift', 'Sources/ReversedEngineeringIcsee/DeviceSettingsEditor.swift'], 'Tests/DeviceSettingsEditorTest.swift', 15),
+    ('camera-control-model', None, 'Tests/CameraControlModelTest.swift', 15),
+]
+for name, files, test, timeout in control_tests:
+    binary = build / name
+    inputs = [str(root/path) for path in files] if files else sources
+    subprocess.run(['swiftc', '-swift-version', '6', '-parse-as-library', *inputs, str(root/test), '-o', str(binary)], check=True)
+    subprocess.run([str(binary)], check=True, timeout=timeout)
+
+flow_test = build / 'camera-control-flow'
+subprocess.run(['swiftc', '-swift-version', '6', '-parse-as-library', *sources,
+                str(root/'Tests/CameraControlFlowTest.swift'), '-o', str(flow_test)], check=True)
+run_control_fixture(flow_test)
+run_control_fixture(flow_test, server_arguments=('--array-camera-param',))
 credential_test = build / 'credential-tests'
 subprocess.run(['swiftc', '-swift-version', '6', '-parse-as-library', *sources,
                 str(root/'Tests/CredentialStoreTest.swift'), '-o', str(credential_test)], check=True)
@@ -66,6 +109,12 @@ subprocess.run(['swiftc','-swift-version','6','-parse-as-library',*sources,
                 str(root/'Tests/CameraWindowsTest.swift'),'-o',str(window_test)],check=True)
 subprocess.run([str(window_test)],check=True)
 if args.interactive:
+    controls_window_test = build / 'camera-controls-window'
+    subprocess.run(['swiftc', '-swift-version', '6', '-parse-as-library', *sources,
+                    str(root/'Tests/CameraControlsWindowTest.swift'), '-o', str(controls_window_test)], check=True)
+    run_control_fixture(controls_window_test)
+    run_control_fixture(controls_window_test, arguments=('--shutdown-move',))
+    run_control_fixture(controls_window_test, arguments=('--shutdown-preset',))
     menu_test = build / 'menu-preview-tests'
     subprocess.run(['swiftc', '-swift-version', '6', '-parse-as-library', *sources,
                     str(root/'Tests/MenuBarPreviewTest.swift'), '-o', str(menu_test)], check=True)

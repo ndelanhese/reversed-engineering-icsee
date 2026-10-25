@@ -15,7 +15,8 @@ struct CameraBoard: View {
             if let camera = cinemaCamera {
                 CameraStage(camera: camera, session: store.session(camera), back: { cinemaID = nil },
                     popup: { windows.open(camera: camera, store: store) },
-                    fullscreen: { windows.open(camera: camera, store: store, fullscreen: true) }, connect: { authenticating = camera })
+                    fullscreen: { windows.open(camera: camera, store: store, fullscreen: true) }, connect: { authenticating = camera },
+                    controls: { windows.openControls(camera: camera, store: store) })
                 .onExitCommand { cinemaID = nil }
             } else { board }
         }
@@ -57,7 +58,8 @@ struct CameraBoard: View {
                                 cinema: { cinemaID = camera.id }, popup: { windows.open(camera: camera, store: store) },
                                 fullscreen: { windows.open(camera: camera, store: store, fullscreen: true) },
                                 isPreviewCamera: store.menuBarCamera?.id == camera.id,
-                                useForPreview: { store.selectMenuBarCamera(camera.id) })
+                                useForPreview: { store.selectMenuBarCamera(camera.id) },
+                                controls: { windows.openControls(camera: camera, store: store) })
                         }
                     }
                     if visible.isEmpty {
@@ -66,7 +68,7 @@ struct CameraBoard: View {
                 }.padding(28)
             }
             .background(Color(nsColor: .windowBackgroundColor))
-            .toolbar { ToolbarItem { Button("Disconnect all", systemImage: "stop.circle") { store.stopAll() } }
+            .toolbar { ToolbarItem { Button("Disconnect all", systemImage: "stop.circle") { windows.disconnectControls(); store.stopAll() } }
             }
         }
     }
@@ -83,6 +85,7 @@ struct CameraTile: View {
     var fullscreen: () -> Void
     var isPreviewCamera: Bool
     var useForPreview: () -> Void
+    var controls: () -> Void
     var body: some View {
         VStack(spacing: 0) {
             CameraVideo(session: session).aspectRatio(16/9, contentMode: .fit)
@@ -102,6 +105,8 @@ struct CameraTile: View {
                 Button(action: cinema) { Image(systemName: "arrow.up.left.and.arrow.down.right") }
                     .buttonStyle(.borderless).help("Cinema mode").accessibilityLabel("Cinema mode")
                 Menu {
+                    Button("Camera controls…", systemImage: "slider.horizontal.3", action: controls)
+                    Divider()
                     Button("Floating window", systemImage: "rectangle.on.rectangle", action: popup)
                     Button("Cinema mode", systemImage: "rectangle.expand.vertical", action: cinema)
                     Button("Full screen", systemImage: "arrow.up.left.and.arrow.down.right", action: fullscreen)
