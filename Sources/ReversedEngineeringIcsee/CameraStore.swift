@@ -44,7 +44,7 @@ enum CredentialStore {
             status = SecItemAdd(item as CFDictionary, nil)
         }
         guard status == errSecSuccess else {
-            throw NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: [NSLocalizedDescriptionKey: "Não foi possível salvar no Chaves do macOS (\(status))."])
+            throw NSError(domain: NSOSStatusErrorDomain, code: Int(status), userInfo: [NSLocalizedDescriptionKey: String(localized: "Could not save in macOS Keychain (\(Int(status))).")])
         }
     }
     static func remove(_ id: UUID) {

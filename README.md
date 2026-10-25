@@ -22,7 +22,9 @@ It is a small, unofficial interoperability project. It does not embed the Androi
 - Local camera authentication, optional macOS Keychain storage, and one compatibility retry for Sofia-style authentication.
 - Connection diagnostics and a watchdog that stops showing frozen video as live.
 
-The interface currently uses Brazilian Portuguese. Video output is scaled to 1280 pixels wide and capped at 15 fps. Audio, PTZ, recording, SD-card playback, cloud-account login and vendor P2P are not implemented. Remote viewing requires an already configured VPN into your home network; Reversed engineering Icsee does not configure one.
+The interface follows your macOS preferred app language: **English or Brazilian Portuguese**, with English as the development-language fallback when no preferred supported language matches. macOS per-app language preferences are respected. Quit and reopen the app after changing its language in **System Settings → General → Language & Region → Applications**. User-entered camera names are preserved.
+
+Video output is scaled to 1280 pixels wide and capped at 15 fps. Audio, PTZ, recording, SD-card playback, cloud-account login and vendor P2P are not implemented. Remote viewing requires an already configured VPN into your home network; Reversed engineering Icsee does not configure one.
 
 ## Download and install
 
@@ -63,20 +65,20 @@ Packages land in `dist/release/`. See [release maintenance](docs/RELEASING.md) f
 
 ## Add your cameras
 
-1. Open **Adicionar câmera**. New installations start empty.
+1. Open **Add camera**. New installations start empty.
 2. Enter the camera's local IP/hostname, RTSP port (usually `554`) and channel (usually `1`). Find the address in your router's connected-device list or the camera's network settings.
-3. Click **Conectar**, then enter the camera's **local device** username and password. These can differ from your iCSee cloud credentials.
-4. Enable **Salvar no Chaves** only if you want to remember credentials.
-5. Try **Fluxo leve** if the main stream is too heavy or unsupported.
+3. Click **Connect**, then enter the camera's **local device** username and password. These can differ from your iCSee cloud credentials.
+4. Enable **Save in macOS Keychain** only if you want to remember credentials.
+5. Try **Substream** if the main stream is too heavy or unsupported.
 
 Do not forward camera ports to the public internet. Local RTSP is not an encrypted transport; use a trusted LAN or VPN.
 
 | Action | Control |
 | --- | --- |
 | Cinema mode | Double-click video or click the expand button |
-| Leave cinema | `Esc` or **Voltar** |
-| Floating window | Camera menu **⋯ → Popup flutuante** |
-| Camera fullscreen | Camera menu **⋯ → Tela cheia** |
+| Leave cinema | `Esc` or **Back** |
+| Floating window | Camera menu **⋯ → Floating window** |
+| Camera fullscreen | Camera menu **⋯ → Full screen** |
 | Exit fullscreen | `Esc` |
 | Toggle focused window fullscreen | `Control + Command + F` |
 | Rename / edit connection | Camera menu **⋯** |
@@ -99,7 +101,7 @@ python3 test.py --interactive # adds native fullscreen / Escape checks
 python3 build.py             # creates and verifies an ad-hoc signed arm64 .app
 ```
 
-CI builds the app, runs core checks, compiles the pinned FFmpeg, and verifies DMG/ZIP packages on a GitHub-hosted macOS runner. Offline synthetic H.264/HEVC decoding checks the bundled executable without Homebrew. Window/fullscreen checks remain manual desktop checks; CI is not a real-camera compatibility test. No camera credentials or APKs are required. The first packaging build downloads FFmpeg source from its official site.
+CI builds the app, checks core behavior and native bundle language selection, compiles the pinned FFmpeg, and verifies DMG/ZIP packages on a GitHub-hosted macOS runner. Offline synthetic H.264/HEVC decoding checks the bundled executable without Homebrew. Rendered localization and window/fullscreen checks remain desktop checks; CI is not a real-camera compatibility test. No camera credentials or APKs are required. The first packaging build downloads FFmpeg source from its official site.
 
 Start with [architecture](docs/ARCHITECTURE.md), [research provenance](docs/REVERSE_ENGINEERING.md), and [contribution rules](CONTRIBUTING.md). Please use synthetic data in issues and pull requests.
 

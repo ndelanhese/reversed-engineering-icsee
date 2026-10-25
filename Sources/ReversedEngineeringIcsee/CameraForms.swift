@@ -7,12 +7,12 @@ struct RenameSheet: View {
     @ViewState private var name = ""
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("Renomear câmera").font(.title2.weight(.semibold))
-            TextField("Nome", text: $name).textFieldStyle(.roundedBorder)
+            Text("Rename camera").font(.title2.weight(.semibold))
+            TextField("Name", text: $name).textFieldStyle(.roundedBorder)
             HStack {
-                Button("Cancelar", role: .cancel) { dismiss() }
+                Button("Cancel", role: .cancel) { dismiss() }
                 Spacer()
-                Button("Salvar") {
+                Button("Save") {
                     var renamed = camera
                     renamed.name = name.trimmingCharacters(in: .whitespacesAndNewlines)
                     save(renamed)
@@ -36,20 +36,20 @@ struct CredentialSheet: View {
     @ViewState private var error: String?
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("Conectar a \(camera.name)").font(.title2.weight(.semibold))
+            Text("Connect to \(camera.name)").font(.title2.weight(.semibold))
             Text(camera.host).foregroundStyle(.secondary)
             Form {
-                TextField("Usuário local", text: $username)
-                SecureField("Senha da câmera", text: $password)
-                Toggle("Salvar no Chaves do macOS", isOn: $remember)
+                TextField("Local username", text: $username)
+                SecureField("Camera password", text: $password)
+                Toggle("Save in macOS Keychain", isOn: $remember)
             }
-            Text("Use credenciais do dispositivo. Elas podem ser diferentes da conta iCSee.")
+            Text("Use device credentials. They may differ from your iCSee account.")
                 .font(.callout).foregroundStyle(.secondary)
             if let error { Text(error).foregroundStyle(.red).font(.callout) }
             HStack {
-                Button("Cancelar", role: .cancel) { dismiss() }
+                Button("Cancel", role: .cancel) { dismiss() }
                 Spacer()
-                Button("Conectar") {
+                Button("Connect") {
                     let value = Credentials(username: username, password: password)
                     do {
                         if remember { try CredentialStore.save(value, for: camera.id) }
@@ -80,22 +80,22 @@ struct CameraEditor: View {
     @ViewState private var error: String?
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text(existing ? "Editar câmera" : "Adicionar câmera").font(.title2.weight(.semibold))
+            Text(existing ? String(localized: "Edit camera") : String(localized: "Add camera")).font(.title2.weight(.semibold))
             Form {
-                TextField("Nome", text: $camera.name)
-                TextField("IP ou nome de rede", text: $camera.host)
-                TextField("Porta RTSP", value: $camera.port, format: .number.grouping(.never))
-                Stepper("Canal \(camera.channel)", value: $camera.channel, in: 1...64)
-                Toggle("Fluxo leve", isOn: $camera.substream)
+                TextField("Name", text: $camera.name)
+                TextField("IP address or hostname", text: $camera.host)
+                TextField("RTSP port", value: $camera.port, format: .number.grouping(.never))
+                Stepper("Channel \(camera.channel)", value: $camera.channel, in: 1...64)
+                Toggle("Substream", isOn: $camera.substream)
             }
-            Text("Fora de casa, endereço precisa estar acessível por VPN. Login pela nuvem iCSee ainda não está disponível.")
+            Text("For remote access, the address must be reachable over a VPN. iCSee cloud login is not available yet.")
                 .font(.callout).foregroundStyle(.secondary)
             if let error { Text(error).foregroundStyle(.red).font(.callout) }
             HStack {
-                if existing { Button("Remover", role: .destructive) { remove(); dismiss() } }
+                if existing { Button("Remove", role: .destructive) { remove(); dismiss() } }
                 Spacer()
-                Button("Cancelar", role: .cancel) { dismiss() }
-                Button("Salvar") {
+                Button("Cancel", role: .cancel) { dismiss() }
+                Button("Save") {
                     do {
                         _ = try camera.endpoint.playlist(username: "validation", password: "")
                         save(camera); dismiss()

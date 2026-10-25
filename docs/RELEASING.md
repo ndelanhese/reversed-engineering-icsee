@@ -9,7 +9,7 @@ Use an Apple Silicon Mac with Apple's Swift 6 toolchain and Python 3.12+. System
 ```sh
 python3 test.py --core-only
 python3 Tools/build_ffmpeg.py
-python3 Tools/package_release.py --tag v0.3.0
+python3 Tools/package_release.py --tag v0.3.1
 ```
 
 The `--tag` check is optional for local previews and mandatory in tag-triggered automation. It refuses a tag that differs from `version.json`.

@@ -19,7 +19,9 @@ Sem vínculo com iCSee ou Xiongmai. Compatibilidade depende do firmware e do RTS
 - Credenciais locais, salvamento opcional no Chaves e tentativa de compatibilidade Sofia após erro de autenticação.
 - Diagnóstico de conexão e detecção de vídeo congelado.
 
-Interface em português brasileiro. Áudio, PTZ, gravação, reprodução do cartão SD, login na nuvem e P2P não foram implementados. Acesso remoto depende de VPN já configurada; o app não instala nem configura VPN.
+Interface segue idioma preferido no macOS: **inglês ou português brasileiro**, respeitando ordem de preferências e idioma específico por app. Inglês é fallback quando nenhum idioma preferido compatível é encontrado. Após mudar em **Ajustes do Sistema → Geral → Idioma e Região → Aplicativos**, encerre e reabra app. Nomes das câmeras permanecem como você definiu.
+
+Áudio, PTZ, gravação, reprodução do cartão SD, login na nuvem e P2P não foram implementados. Acesso remoto depende de VPN já configurada; o app não instala nem configura VPN.
 
 ## Baixar e instalar
 
@@ -95,7 +97,7 @@ python3 test.py
 python3 test.py --interactive
 ```
 
-Primeiro comando não precisa de câmera nem sessão gráfica. Segundo adiciona testes de janelas; terceiro testa tela cheia e Esc. Ambos precisam de sessão gráfica. CI também compila FFmpeg e valida DMG/ZIP com vídeos H.264/HEVC sintéticos, sem Homebrew no caminho. Primeiro build de empacotamento baixa fonte oficial do FFmpeg; não acessa câmeras reais.
+Primeiro comando verifica núcleo e seleção nativa de idioma, sem câmera nem sessão gráfica. Segundo adiciona testes de janelas; terceiro verifica interface renderizada em inglês/português, tela cheia e Esc. Ambos precisam de sessão gráfica. CI também compila FFmpeg e valida DMG/ZIP com vídeos H.264/HEVC sintéticos, sem Homebrew no caminho. Primeiro build de empacotamento baixa fonte oficial do FFmpeg; não acessa câmeras reais.
 
 Leia [arquitetura](docs/ARCHITECTURE.md), [investigação](docs/REVERSE_ENGINEERING.md) e [regras de contribuição](CONTRIBUTING.md). Issues e PRs aceitam português ou inglês. Não envie senhas, vídeos privados, APKs ou dados da sua rede.
 

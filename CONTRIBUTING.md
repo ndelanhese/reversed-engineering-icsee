@@ -23,7 +23,7 @@ GitHub rules require a PR, one approving code-owner review, resolved review conv
 
 ## Scope and code style
 
-Prefer SwiftUI/AppKit and the standard library. Keep one shared session per camera and preserve saved profile IDs and Keychain access. Avoid adding a dependency for behavior the platform already supplies. App UI currently uses Brazilian Portuguese; keep messages consistent and avoid exposing implementation diagnostics to users.
+Prefer SwiftUI/AppKit and the standard library. Keep one shared session per camera and preserve saved profile IDs and Keychain access. Avoid adding a dependency for behavior the platform already supplies. App UI follows native macOS language selection, with English development strings and Brazilian Portuguese translations. Add user-facing strings to both catalogs under `Resources/*.lproj`; use `String(localized:)` for runtime/dynamic messages and native localized SwiftUI initializers for literals. Preserve interpolation types and user-entered names. Run `python3 test.py --core-only` for catalog and language-selection checks; `--interactive` also checks rendered UI. Do not expose raw implementation diagnostics to users.
 
 No vendor code, vendor binaries, extracted resources, private research dumps or real device data may be added. Describe observations in your own words and separate what was tested from what was inferred. Third-party additions need a source and a compatible license.
 

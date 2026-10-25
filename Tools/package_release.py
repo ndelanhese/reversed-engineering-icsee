@@ -106,6 +106,8 @@ Licenses and build configuration: app Contents/Resources/ThirdParty/FFmpeg.
 - Baixe **{prefix}.dmg**, abra e arraste o app para **Applications**. ZIP também disponível.
 - FFmpeg is included; no Homebrew, compiler or Python needed to run the app.
 - Original app icon included in Finder and Dock. Existing camera profiles and Keychain service are preserved.
+- Interface follows macOS preferred app language: English or Brazilian Portuguese, with English fallback. Restart after changing the per-app language preference.
+- Interface segue idioma preferido no macOS: inglês ou português brasileiro. Reabra após mudar idioma específico do app.
 
 ## Signing / Assinatura
 
