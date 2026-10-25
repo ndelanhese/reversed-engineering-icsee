@@ -69,6 +69,9 @@ Packages land in `dist/release/`. See [release maintenance](docs/RELEASING.md) f
 2. Enter the camera's local IP/hostname, RTSP port (usually `554`) and channel (usually `1`). Find the address in your router's connected-device list or the camera's network settings.
 3. Click **Connect**, then enter the camera's **local device** username and password. These can differ from your iCSee cloud credentials.
 4. Enable **Save in macOS Keychain** only if you want to remember credentials.
+5. Try **Substream** if the main stream is too heavy or unsupported.
+
+### Saved credentials and Keychain
 
 Saved passwords remain in macOS Keychain; they are not written to preferences, logs or repository files.
 The system prompt asks for your **Mac login/Keychain password**, not your camera password.
@@ -97,8 +100,6 @@ it does not distribute your local signing identity. Do not delete/recreate the i
 An expired or lost identity requires a new authorization. `--sign-identity FINGERPRINT` selects
 another signing certificate, and `--sign-identity -` explicitly creates an ad-hoc build.
 
-5. Try **Substream** if the main stream is too heavy or unsupported.
-
 Do not forward camera ports to the public internet. Local RTSP is not an encrypted transport; use a trusted LAN or VPN.
 
 | Action | Control |
@@ -126,7 +127,7 @@ Passwords, derived Sofia credentials and decoded video still exist in process me
 python3 test.py --core-only  # deterministic protocol/parser checks; no camera needed
 python3 test.py              # adds native window lifecycle checks; desktop required
 python3 test.py --interactive # adds native fullscreen / Escape checks
-python3 build.py             # creates and verifies an ad-hoc signed arm64 .app
+python3 build.py             # creates and verifies a signed arm64 .app
 ```
 
 CI builds the app, checks core behavior and native bundle language selection, compiles the pinned FFmpeg, and verifies DMG/ZIP packages on a GitHub-hosted macOS runner. Offline synthetic H.264/HEVC decoding checks the bundled executable without Homebrew. Rendered localization and window/fullscreen checks remain desktop checks; CI is not a real-camera compatibility test. No camera credentials or APKs are required. The first packaging build downloads FFmpeg source from its official site.
