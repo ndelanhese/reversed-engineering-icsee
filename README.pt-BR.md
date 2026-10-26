@@ -125,7 +125,7 @@ Não exponha portas das câmeras na internet. RTSP local não é transporte crip
 | Renomear / configurar conexão | Menu **⋯** |
 | Fechar popup | Botão nativo ou `Command + W` |
 
-Fechar popup mantém a transmissão compartilhada. Fechar a janela principal mantém o app e as câmeras ativas na barra de menus. Use `Command + Q` para encerrar o app e todas as transmissões.
+Fechar a janela principal mantém o app na barra de menus. O vídeo pausa quando a câmera não tem visualização visível, incluindo janelas fechadas, minimizadas ou totalmente cobertas. Abrir a janela ou a prévia retoma câmeras conectadas nesta sessão sem pedir senha novamente. **Parar** impede retomada automática. Use `Command + Q` para encerrar.
 
 ## Prévia na barra de menus
 
@@ -133,7 +133,7 @@ Passe o mouse sobre o ícone de lente na barra de menus do macOS para ver a câm
 
 Escolha **Câmera da prévia** no painel ou **⋯ → Usar na prévia da barra de menus** no cartão da câmera. A escolha permanece entre aberturas do app. Renomear preserva a seleção; excluir a câmera selecionada escolhe outra câmera salva.
 
-A prévia compartilha a conexão existente com a grade e os popups. Clique no ícone do app no Dock para reabrir a janela principal. Conecte as câmeras e abra controles, gravações ou visualizações ampliadas pelo app principal. Passar o mouse não pede senha nem inicia conexão automaticamente.
+A prévia compartilha uma sessão por câmera com a grade e os popups. Sozinha, usa imagens de 480 pixels de largura a 5 FPS; cartões da grade usam 800 pixels / 5 FPS; cinema, popups e tela cheia mantêm o limite anterior de 1280 pixels / 15 FPS. Câmeras ocultas encerram o decodificador e liberam o frame atual. Passar o mouse retoma uma câmera já conectada com credenciais mantidas em memória; não acessa o Keychain nem autentica câmera desconectada. Clique no ícone do app no Dock para reabrir a janela principal. Controles, gravações e visualizações ampliadas ficam no app principal. Veja [comportamento e medições de recursos](docs/PERFORMANCE.md).
 
 ## Controles da câmera
 
@@ -155,13 +155,14 @@ Validação real nas duas câmeras: consultas ONVIF, solicitações curtas de mo
 
 Nomes, endereços e ajustes ficam nas preferências locais do macOS. Credenciais persistem no Chaves somente quando solicitado. URL autenticada chega ao FFmpeg por pipe em memória; não por argumento do processo nem arquivo de playlist. Diagnósticos brutos são classificados em memória. Sem telemetria ou integração com conta na nuvem.
 
-Credenciais e vídeo decodificado existem na memória enquanto usados. Transformação Sofia serve para compatibilidade legada, não para criptografia ou armazenamento moderno de senhas. Vídeo é decodificado com largura de saída de 1280 pixels e até 15 quadros por segundo. Veja [política de segurança](SECURITY.md).
+Credenciais e vídeo decodificado existem na memória enquanto usados. Transformação Sofia serve para compatibilidade legada, não para criptografia ou armazenamento moderno de senhas. A saída depende da visualização: prévia em 480 pixels / 5 FPS, grade em 800 pixels / 5 FPS e cinema/popups/tela cheia em até 1280 pixels / 15 FPS. Sem visualização visível, decodificação pausa. Veja [política de segurança](SECURITY.md).
 
 ## Testes e contribuição
 
 ```sh
 python3 test.py --core-only
 python3 test.py
+python3 Tools/build_ffmpeg.py
 python3 test.py --interactive
 ```
 

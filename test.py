@@ -92,6 +92,10 @@ subprocess.run(['swiftc', '-swift-version', '6', '-target', 'arm64-apple-macos14
                 str(root/'Tests/CameraControlFlowTest.swift'), '-o', str(flow_test)], check=True)
 run_control_fixture(flow_test)
 run_control_fixture(flow_test, server_arguments=('--array-camera-param',))
+energy_test = build / 'camera-energy-tests'
+subprocess.run(['swiftc', '-swift-version', '6', '-target', 'arm64-apple-macos14.0', '-parse-as-library', *sources,
+                str(root/'Tests/CameraEnergyTest.swift'), '-o', str(energy_test)], check=True)
+subprocess.run([str(energy_test)], check=True)
 credential_test = build / 'credential-tests'
 subprocess.run(['swiftc', '-swift-version', '6', '-target', 'arm64-apple-macos14.0', '-parse-as-library', *sources,
                 str(root/'Tests/CredentialStoreTest.swift'), '-o', str(credential_test)], check=True)
@@ -135,6 +139,26 @@ subprocess.run(['swiftc','-swift-version','6','-target','arm64-apple-macos14.0',
                 str(root/'Tests/CameraWindowsTest.swift'),'-o',str(window_test)],check=True)
 subprocess.run([str(window_test)],check=True)
 if args.interactive:
+    live_app = build / 'LiveEnergyFixture.app'
+    live_binary = live_app / 'Contents/MacOS/camera-energy-window-tests'
+    live_binary.parent.mkdir(parents=True, exist_ok=True)
+    decoder = root / '.build/ffmpeg/bin/ffmpeg'
+    if not decoder.is_file():
+        raise SystemExit('Run python3 Tools/build_ffmpeg.py before interactive live-energy tests.')
+    shutil.copy2(decoder, live_binary.parent / 'ffmpeg')
+    (live_app / 'Contents/Info.plist').write_bytes(plistlib.dumps({
+        'CFBundleExecutable': live_binary.name, 'CFBundleIdentifier': 'local.REI.energy-tests',
+        'CFBundlePackageType': 'APPL', 'CFBundleName': 'Energy QA'}))
+    subprocess.run(['swiftc', '-swift-version', '6', '-target', 'arm64-apple-macos14.0', '-parse-as-library', *sources,
+                    str(root/'Tests/CameraEnergyWindowTest.swift'), '-o', str(live_binary)], check=True)
+    peer = subprocess.Popen([sys.executable, str(root/'Tests/LiveFixtureServer.py')], stdout=subprocess.PIPE, text=True)
+    try:
+        if not select.select([peer.stdout], [], [], 10)[0]:
+            raise RuntimeError('Synthetic live-video peer did not start.')
+        port = json.loads(peer.stdout.readline())['port']
+        subprocess.run([str(live_binary), str(port)], check=True, timeout=100)
+    finally:
+        peer.terminate(); peer.wait(timeout=5)
     run_recording_fixture(('--window',))
     controls_window_test = build / 'camera-controls-window'
     subprocess.run(['swiftc', '-swift-version', '6', '-target', 'arm64-apple-macos14.0', '-parse-as-library', *sources,

@@ -6,6 +6,7 @@ typealias ViewState<Value> = SwiftUI.State<Value>
 
 struct CameraVideo: View {
     @Bindable var session: CameraSession
+    var profile: CameraRenderProfile = .window
     var body: some View {
         ZStack {
             Color.black
@@ -22,6 +23,65 @@ struct CameraVideo: View {
                 }
             }
         }.frame(maxWidth: .infinity, maxHeight: .infinity).clipped()
+            .background(CameraVideoVisibility(session: session, profile: profile))
+    }
+}
+
+private struct CameraVideoVisibility: NSViewRepresentable {
+    let session: CameraSession
+    let profile: CameraRenderProfile
+    func makeNSView(context: Context) -> CameraVisibilityView { CameraVisibilityView() }
+    func updateNSView(_ view: CameraVisibilityView, context: Context) { view.configure(session, profile: profile) }
+    static func dismantleNSView(_ view: CameraVisibilityView, coordinator: ()) { view.detach() }
+}
+
+@MainActor final class CameraVisibilityView: NSView {
+    private let viewerID = UUID()
+    private weak var session: CameraSession?
+    private var profile = CameraRenderProfile.window
+    private var sleeping = false
+    func configure(_ session: CameraSession, profile: CameraRenderProfile) {
+        if self.session !== session { self.session?.updateViewer(viewerID, profile: nil) }
+        self.session = session
+        self.profile = profile
+        updateVisibility()
+    }
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        NotificationCenter.default.removeObserver(self)
+        NSWorkspace.shared.notificationCenter.removeObserver(self)
+        if let window {
+            for name in [NSWindow.didChangeOcclusionStateNotification, NSWindow.didMiniaturizeNotification,
+                         NSWindow.didDeminiaturizeNotification, NSWindow.willCloseNotification] {
+                NotificationCenter.default.addObserver(self, selector: #selector(windowChanged(_:)), name: name, object: window)
+            }
+            for name in [NSApplication.didHideNotification, NSApplication.didUnhideNotification] {
+                NotificationCenter.default.addObserver(self, selector: #selector(windowChanged(_:)), name: name, object: nil)
+            }
+            for name in [NSWorkspace.willSleepNotification, NSWorkspace.didWakeNotification] {
+                NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(powerChanged(_:)), name: name, object: nil)
+            }
+        }
+        updateVisibility()
+    }
+    @objc private func windowChanged(_ note: Notification) {
+        if note.name == NSWindow.willCloseNotification { session?.updateViewer(viewerID, profile: nil) }
+        else { updateVisibility() }
+    }
+    @objc private func powerChanged(_ note: Notification) {
+        sleeping = note.name == NSWorkspace.willSleepNotification
+        updateVisibility()
+    }
+    private func updateVisibility() {
+        let visible = !sleeping && !NSApp.isHidden && window?.isVisible == true && window?.isMiniaturized == false
+            && window?.occlusionState.contains(.visible) == true
+        session?.updateViewer(viewerID, profile: visible ? profile : nil)
+    }
+    func detach() {
+        NotificationCenter.default.removeObserver(self)
+        NSWorkspace.shared.notificationCenter.removeObserver(self)
+        session?.updateViewer(viewerID, profile: nil)
+        session = nil
     }
 }
 

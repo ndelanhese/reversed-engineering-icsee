@@ -24,3 +24,9 @@ ffmpeg -hide_banner -loglevel error -f lavfi -i testsrc2=size=64x64:rate=10 -fra
 ```
 
 `RecordingMediaTest --write-fixture <path>` wraps the valid H.264 fixture in independently constructed XM headers with synthetic G.711A silence for localhost integration tests. Ordinary tests also construct corrupted/fragmented fixtures in memory and remove their temporary outputs.
+
+`pattern.h264` is a single synthetic `testsrc2` frame for live RTSP/pipe backpressure tests; no camera input. Generated with:
+
+```sh
+ffmpeg -f lavfi -i testsrc2=size=640x360:rate=15 -frames:v 1 -c:v libx264 -preset fast -tune zerolatency -threads 1 -g 1 -f h264 pattern.h264
+```
