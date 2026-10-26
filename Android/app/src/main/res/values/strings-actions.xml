@@ -42,7 +42,7 @@
     <string name="apply">Apply changes</string>
     <string name="apply_confirm">Write these changes to the camera? Network and power settings can interrupt its connection.</string>
     <string name="verified">Changes verified.</string>
-    <string name="restart_pending">Camera accepted changes requiring a restart; readback is pending.</string>
+    <string name="restart_pending">Camera accepted changes that require a restart.</string>
     <string name="read_only">Read only</string>
     <string name="unavailable">Unsupported or unavailable</string>
     <string name="scan">Discover available settings</string>

@@ -42,7 +42,7 @@
     <string name="apply">Aplicar alterações</string>
     <string name="apply_confirm">Gravar estas alterações na câmera? Ajustes de rede e energia podem interromper a conexão.</string>
     <string name="verified">Alterações verificadas.</string>
-    <string name="restart_pending">A câmera aceitou alterações que exigem reinicialização; a verificação está pendente.</string>
+    <string name="restart_pending">A câmera aceitou alterações que exigem reinicialização.</string>
     <string name="read_only">Somente leitura</string>
     <string name="unavailable">Recurso indisponível ou não suportado</string>
     <string name="scan">Descobrir ajustes disponíveis</string>

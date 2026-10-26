@@ -217,7 +217,7 @@ class SettingsDialog(private val app: MainActivity, private val scope: WorkScope
             app.confirm(app.getString(R.string.apply), app.getString(R.string.apply_confirm)) {
                 scope.run(camera.request("settings_write", credentials).put("name", section.getString("name")).put("original", original).put("updated", updated), { result ->
                     dialog.dismiss(); val r = result as JSONObject
-                    app.message(app.getString(if (r.optBoolean("requiresRestart") && !r.optBoolean("verified")) R.string.restart_pending else R.string.verified))
+                    app.message(app.getString(if (r.optBoolean("requiresRestart")) R.string.restart_pending else R.string.verified))
                 }, error)
             }
         } }; dialog.show()
