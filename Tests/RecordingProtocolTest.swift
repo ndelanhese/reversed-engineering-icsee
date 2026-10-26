@@ -8,6 +8,7 @@ import Network
     }
     static func main() async throws {
         if CommandLine.arguments.contains("--fallback-cancel-only") { try await fallbackCancellationTest(); return }
+        if CommandLine.arguments.contains("--canonical-replies-only") { try await canonicalReplyTests(); return }
         try require(CameraRecordingTime(wire: "2024-02-29 23:59:59")?.adding(seconds: 1)?.wire == "2024-03-01 00:00:00", "Leap day arithmetic")
         for wire in ["2023-02-29 00:00:00", "2024-04-31 12:00:00", "2024-01-01 24:00:00", "2024-01-01 00:60:00", "2024-01-01 00:00:60", "0000-01-01 00:00:00", "2024-1-01 00:00:00", "2024-01-01 00:00:00Z"] {
             try require(CameraRecordingTime(wire: wire) == nil, "Malformed clock rejected")
@@ -21,6 +22,7 @@ import Network
         try await delayedClaimTest()
         try await unsupportedStartTest()
         try await fallbackCancellationTest()
+        try await canonicalReplyTests()
         try await nativeDeadlineTest()
         print("PASS: recording wall clocks, calendar/storage, inclusive bounded history, independent authenticated download, EOS and abort cleanup")
     }
@@ -231,6 +233,32 @@ import Network
         await subject.disconnect()
         try require(closed && cancelled && logins == 0 && !FileManager.default.fileExists(atPath: output.path), "Cancellation during fallback Stop cannot reopen or authenticate media")
     }
+    static func canonicalReplyTests() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let recording = CameraRecording(fileName: "/opaque/canonical.h264", begin: CameraRecordingTime(wire: "2024-03-01 00:00:00")!, end: CameraRecordingTime(wire: "2024-03-01 00:01:00")!, estimatedBytes: nil, channel: 0, substream: false)
+        for mode in [RecordingPeer.Mode.canonicalReply, .normal, .replyBit, .singleFragment] {
+            let control = RecordingPeer(mode: mode), media = RecordingPeer(mode: mode, media: true)
+            let subject = client(RecordingPeers([control, media])); try await subject.connect()
+            let output = directory.appendingPathComponent(UUID().uuidString)
+            try await subject.download(recording: recording, to: output)
+            let clock = try await subject.cameraTime()
+            try require(clock.year == 2024 && (try Data(contentsOf: output)) == Data([0, 1, 2, 0, 3, 0]), "Canonical paired reply sequence and single-fragment variants preserve Claim/Start/media")
+            let controlSequences = await control.requestSequences
+            let mediaSequences = await media.requestSequences
+            try require(controlSequences == Array(stride(from: UInt32(0), to: UInt32(controlSequences.count * 2), by: 2)) && mediaSequences == [0], "Outgoing sequences reserve bit zero for replies")
+            await subject.disconnect()
+        }
+        for mode in [RecordingPeer.Mode.wrongSequence, .multipleFragments, .invalidFragmentIndex, .controlWrongSession] {
+            let subject = client(RecordingPeers([RecordingPeer(mode: mode)]))
+            var rejected = false
+            do { try await subject.connect(); _ = try await subject.cameraTime() }
+            catch DVRIPError.malformed { rejected = true }
+            await subject.disconnect()
+            try require(rejected, "Unrelated sequence, wrong session and multi-fragment control remain rejected")
+        }
+    }
 }
 
 // A deterministic transport peer exercises production framing and command decoding.
@@ -258,7 +286,7 @@ actor RecordingHandshakeGate {
     func releaseStop() { holdStop = false; stopContinuation?.resume(); stopContinuation = nil }
 }
 actor RecordingPeer: DVRIPTransport {
-    enum Mode: Sendable { case normal, sameSecond, authentication, wrongSequence, overflow, unsupportedCalendar, endFlag, emptyEnd, lostEnd, mediaWrongSession, stall, compatibility, claimUnsupported, emptyStorage, absentStorage, partialStorage, delayedClaim, startUnsupported }
+    enum Mode: Sendable { case normal, sameSecond, authentication, wrongSequence, overflow, unsupportedCalendar, endFlag, emptyEnd, lostEnd, mediaWrongSession, stall, compatibility, claimUnsupported, emptyStorage, absentStorage, partialStorage, delayedClaim, startUnsupported, replyBit, singleFragment, canonicalReply, multipleFragments, invalidFragmentIndex, controlWrongSession }
     let mode: Mode
     let media: Bool
     let gate: RecordingHandshakeGate?
@@ -266,6 +294,7 @@ actor RecordingPeer: DVRIPTransport {
     var queries: [String] = []
     var actions: [String] = []
     var logins = 0
+    var requestSequences: [UInt32] = []
     var closed = false
     init(mode: Mode = .normal, media: Bool = false, gate: RecordingHandshakeGate? = nil) { self.mode = mode; self.media = media; self.gate = gate }
     func connect(deadline: Date) async throws { closed = false }
@@ -273,6 +302,7 @@ actor RecordingPeer: DVRIPTransport {
     func send(_ data: Data, deadline: Date) async throws {
         var parser = DVRIPFramer(); try parser.append(data)
         guard let request = try parser.next(), case .object(let object) = try DeviceJSON.decode(Data(request.payload.dropLast(2))) else { throw DVRIPError.malformed }
+        requestSequences.append(request.sequence)
         var reply: [String: DeviceJSON] = ["Ret": .number(100), "SessionID": .string("0x0000000c")]
         switch request.message {
         case 1000:
@@ -303,20 +333,27 @@ actor RecordingPeer: DVRIPTransport {
         case 1006: break
         default: throw DVRIPError.malformed
         }
-        let frame = DVRIPFrame(session: 12, sequence: request.sequence + (mode == .wrongSequence ? 1 : 0), message: request.message + 1, payload: try JSONEncoder().encode(DeviceJSON.object(reply)))
+        let wrongSession = mode == .controlWrongSession && request.message != 1000
+        if wrongSession { reply["SessionID"] = .string("0x0000000d") }
+        let replySequence = mode == .wrongSequence ? request.sequence + 2 : mode == .replyBit || mode == .canonicalReply ? request.sequence | 1 : request.sequence
+        let frame = DVRIPFrame(session: wrongSession ? 13 : 12, sequence: replySequence, message: request.message + 1, payload: try JSONEncoder().encode(DeviceJSON.object(reply)))
         if mode == .delayedClaim && request.message == 1424 {
             bytes.append(try DVRIPFrame(session: 12, sequence: 0, message: 1426, payload: Data([0, 1, 2, 0, 3, 0])).encoded())
             bytes.append(try frame.encoded())
             bytes.append(try DVRIPFrame(session: 12, sequence: 1, message: 1423, payload: Data()).encoded())
             return
         }
-        bytes.append(try frame.encoded())
+        var encodedReply = try frame.encoded()
+        if [.singleFragment, .canonicalReply, .invalidFragmentIndex].contains(mode) { encodedReply[12] = 1 }
+        if mode == .multipleFragments { encodedReply[12] = 2 }
+        if mode == .invalidFragmentIndex { encodedReply[13] = 1 }
+        bytes.append(encodedReply)
         if media && ((request.message == 1424 && mode != .compatibility) || (request.message == 1420 && mode == .compatibility && actions.last == "DownloadStart")) {
             if mode == .stall || mode == .claimUnsupported { return }
             var payload = try DVRIPFrame(session: mode == .mediaWrongSession ? 13 : 12, sequence: 0, message: 1426, payload: Data([0, 1, 2, 0, 3, 0])).encoded()
             if mode == .endFlag { payload[13] = 1 }
             bytes.append(payload)
-            if mode == .normal || mode == .compatibility { bytes.append(try DVRIPFrame(session: 12, sequence: 1, message: 1423, payload: Data()).encoded()) }
+            if [.normal, .compatibility, .replyBit, .singleFragment, .canonicalReply].contains(mode) { bytes.append(try DVRIPFrame(session: 12, sequence: 1, message: 1423, payload: Data()).encoded()) }
             if mode == .emptyEnd { bytes.append(try DVRIPFrame(session: 12, sequence: 1, message: 1426, payload: Data()).encoded()) }
         }
     }

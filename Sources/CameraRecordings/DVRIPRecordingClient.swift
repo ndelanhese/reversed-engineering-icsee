@@ -1,5 +1,55 @@
 import Foundation
 import Darwin
+import OSLog
+
+/// Diagnostic values come only from protocol counters/flags and fixed stages.
+/// Never pass a body, token, endpoint, credential, recording name or media here.
+enum RecordingProtocolStage: Sendable {
+    case request(UInt16), claim, start, stop, media, framing
+    var label: String {
+        switch self {
+        case .request: "control"
+        case .claim: "Claim"
+        case .start: "DownloadStart"
+        case .stop: "DownloadStop"
+        case .media: "media"
+        case .framing: "framing"
+        }
+    }
+    var request: UInt16 {
+        switch self {
+        case .request(let message): message
+        case .claim: 1424
+        case .start, .stop: 1420
+        case .media: 1426
+        case .framing: 0
+        }
+    }
+    static func control(_ message: UInt16, body: [String: DeviceJSON]) -> Self {
+        if message == 1424 { return .claim }
+        if message == 1420 {
+            if case .object(let playback)? = body["OPPlayBack"], playback["Action"] == .string("DownloadStop") { return .stop }
+            return .start
+        }
+        return .request(message)
+    }
+}
+private enum RecordingProtocolDiagnostics {
+    static let logger = Logger(subsystem: "local.CamMac", category: "Recordings")
+    static func packet(_ packet: RecordingPacket, stage: RecordingProtocolStage, expectedMessage: UInt16,
+                       expectedSequence: UInt32?, sessionMatches: Bool) {
+        let sequenceChecked = expectedSequence != nil
+        let sequenceMatches = expectedSequence.map { ($0 & ~UInt32(1)) == (packet.sequence & ~UInt32(1)) } ?? false
+        logger.error("Invalid packet stage=\(stage.label, privacy: .public) request=\(stage.request, privacy: .public) expectedMessage=\(expectedMessage, privacy: .public) actualMessage=\(packet.message, privacy: .public) sequenceChecked=\(sequenceChecked, privacy: .public) sequenceMatches=\(sequenceMatches, privacy: .public) sessionMatches=\(sessionMatches, privacy: .public) fragment=\(packet.fragment, privacy: .public) end=\(packet.end, privacy: .public) payloadLength=\(packet.payload.count, privacy: .public)")
+    }
+    static func json(stage: RecordingProtocolStage, decodeFailure: Bool, objectValid: Bool,
+                     bodySessionPresent: Bool, bodySessionMatches: Bool) {
+        logger.error("Invalid JSON reply stage=\(stage.label, privacy: .public) request=\(stage.request, privacy: .public) jsonDecodeFailure=\(decodeFailure, privacy: .public) objectValid=\(objectValid, privacy: .public) bodySessionPresent=\(bodySessionPresent, privacy: .public) bodySessionMatches=\(bodySessionMatches, privacy: .public)")
+    }
+    static func header(stage: RecordingProtocolStage, version: UInt8, reservedValid: Bool, length: Int) {
+        logger.error("Invalid DVRIP header stage=\(stage.label, privacy: .public) request=\(stage.request, privacy: .public) version=\(version, privacy: .public) reservedValid=\(reservedValid, privacy: .public) payloadLength=\(length, privacy: .public)")
+    }
+}
 
 /// Read-only history commands and file downloads own their authentication and
 /// sockets. Settings and live-view sessions are never borrowed or interrupted.
@@ -191,15 +241,18 @@ actor DVRIPRecordingClient {
                 try checkDownload(id, generation: expected)
                 let start = try await session.exchange(1420, body: playback(recording, action: "DownloadStart"))
                 try checkDownload(id, generation: expected)
-                try RecordingWire.checkReturn(start)
+                try RecordingWire.checkReturn(start, stage: .start)
                 let claim = try await media.finishClaim()
                 try checkDownload(id, generation: expected)
                 do {
-                    try RecordingWire.checkReturn(claim)
+                    try RecordingWire.checkReturn(claim, stage: .claim)
                 } catch DVRIPError.unsupported {
                     // Documented compatibility dialect only after explicit rejection
                     // of the shared-session claim, before any media was consumed.
-                    guard !(await media.hasBufferedBytes) else { throw DVRIPError.malformed }
+                    guard !(await media.hasBufferedBytes) else {
+                        RecordingProtocolDiagnostics.logger.error("Invalid compatibility transition stage=Claim request=1424 bufferedMedia=true")
+                        throw DVRIPError.malformed
+                    }
                     try checkDownload(id, generation: expected)
                     await stop(recording, media: media, control: session)
                     try checkDownload(id, generation: expected)
@@ -209,10 +262,10 @@ actor DVRIPRecordingClient {
                     try checkDownload(id, generation: expected)
                     let claim = try await media.exchange(1424, body: playback(recording, action: "Claim"))
                     try checkDownload(id, generation: expected)
-                    try RecordingWire.checkReturn(claim)
+                    try RecordingWire.checkReturn(claim, stage: .claim)
                     let start = try await media.exchange(1420, body: playback(recording, action: "DownloadStart"))
                     try checkDownload(id, generation: expected)
-                    try RecordingWire.checkReturn(start)
+                    try RecordingWire.checkReturn(start, stage: .start)
                     try await writeMedia(media, recording: recording, url: url, handle: &handle, created: &created, progress: progress)
                     return
                 }
@@ -322,8 +375,14 @@ private enum RecordingWire {
     static func returnCode(_ reply: [String: DeviceJSON]) throws -> UInt64 {
         guard let raw = reply["Ret"] else { throw DVRIPError.malformed }; return try unsigned(raw)
     }
-    static func checkReturn(_ reply: [String: DeviceJSON], search: Bool = false) throws {
-        switch try returnCode(reply) {
+    static func checkReturn(_ reply: [String: DeviceJSON], search: Bool = false, stage: RecordingProtocolStage = .request(0)) throws {
+        let code: UInt64
+        do { code = try returnCode(reply) }
+        catch {
+            RecordingProtocolDiagnostics.logger.error("Invalid return code stage=\(stage.label, privacy: .public) request=\(stage.request, privacy: .public) returnCodeValid=false")
+            throw error
+        }
+        switch code {
         case 100: return
         case 109, 110, 111, 119:
             guard search else { throw DVRIPError.rejected }; return
@@ -373,13 +432,19 @@ struct RecordingPacketFramer: Sendable {
         guard data.count <= DVRIPFramer.maximumPayload + 20, buffer.count <= DVRIPFramer.maximumPayload + 65_556 - data.count else { throw DVRIPError.responseTooLarge }
         buffer.append(data)
     }
-    mutating func next() throws -> RecordingPacket? {
+    mutating func next(stage: RecordingProtocolStage = .framing) throws -> RecordingPacket? {
         guard buffer.count >= 20 else { return nil }
         let bytes = Array(buffer.prefix(20))
-        guard bytes[0] == 255, bytes[1] <= 1, bytes[2] == 0, bytes[3] == 0 else { throw DVRIPError.malformed }
         func u32(_ offset: Int) -> UInt32 { (0..<4).reduce(0) { $0 | UInt32(bytes[offset + $1]) << ($1 * 8) } }
         let length = Int(u32(16))
-        guard length <= DVRIPFramer.maximumPayload else { throw DVRIPError.responseTooLarge }
+        guard bytes[0] == 255, bytes[1] <= 1, bytes[2] == 0, bytes[3] == 0 else {
+            RecordingProtocolDiagnostics.header(stage: stage, version: bytes[1], reservedValid: bytes[2] == 0 && bytes[3] == 0, length: length)
+            throw DVRIPError.malformed
+        }
+        guard length <= DVRIPFramer.maximumPayload else {
+            RecordingProtocolDiagnostics.header(stage: stage, version: bytes[1], reservedValid: true, length: length)
+            throw DVRIPError.responseTooLarge
+        }
         guard buffer.count >= length + 20 else { return nil }
         let packet = RecordingPacket(session: u32(4), sequence: u32(8), message: UInt16(bytes[14]) | UInt16(bytes[15]) << 8,
                                      fragment: bytes[12], end: bytes[13], payload: Data(buffer.dropFirst(20).prefix(length)))
@@ -450,10 +515,10 @@ private actor RecordingProtocolSession {
             guard !closed, login || session != 0 else { throw DVRIPError.disconnected }
             var body = body
             if !login { body["SessionID"] = .string(String(format: "0x%08x", session)) }
-            let sentSequence = sequence; sequence &+= 1
+            let sentSequence = sequence; sequence &+= 2
             let payload = try JSONEncoder().encode(DeviceJSON.object(body)) + Data([10, 0])
             try await transport.send(try DVRIPFrame(session: session, sequence: sentSequence, message: message, payload: payload).encoded(), deadline: deadline)
-            return try await receiveReply(message: message, sequence: sentSequence, deadline: deadline, login: login, allowMedia: isCompatibilitySession)
+            return try await receiveReply(message: message, sequence: sentSequence, deadline: deadline, login: login, allowMedia: isCompatibilitySession, stage: .control(message, body: body))
         } catch { await close(); throw error }
     }
     /// Holds the media session's exchange permit until finishClaim correlates
@@ -466,35 +531,61 @@ private actor RecordingProtocolSession {
             guard isAuthenticated else { throw DVRIPError.disconnected }
             var body = body
             body["SessionID"] = .string(String(format: "0x%08x", session))
-            let sent = sequence; sequence &+= 1
+            let sent = sequence; sequence &+= 2
             let payload = try JSONEncoder().encode(DeviceJSON.object(body)) + Data([10, 0])
             try await transport.send(try DVRIPFrame(session: session, sequence: sent, message: 1424, payload: payload).encoded(), deadline: deadline)
             pendingClaim = (sent, deadline)
         } catch { release(); await close(); throw error }
     }
     func finishClaim() async throws -> [String: DeviceJSON] {
-        guard let claim = pendingClaim else { throw DVRIPError.malformed }
+        guard let claim = pendingClaim else {
+            RecordingProtocolDiagnostics.logger.error("Invalid Claim state stage=Claim request=1424 pendingClaim=false")
+            throw DVRIPError.malformed
+        }
         pendingClaim = nil
         defer { release() }
-        do { return try await receiveReply(message: 1424, sequence: claim.sequence, deadline: claim.deadline, allowMedia: true) }
+        do { return try await receiveReply(message: 1424, sequence: claim.sequence, deadline: claim.deadline, allowMedia: true, stage: .claim) }
         catch { await close(); throw error }
     }
     private func receiveReply(message: UInt16, sequence sent: UInt32, deadline: Date, login: Bool = false,
-                              allowMedia: Bool) async throws -> [String: DeviceJSON] {
+                              allowMedia: Bool, stage: RecordingProtocolStage) async throws -> [String: DeviceJSON] {
         while true {
-            let packet = try await next(deadline: deadline)
+            let packet = try await next(deadline: deadline, stage: stage)
             if allowMedia && (packet.message == 1426 || packet.message == 1423) {
-                guard packet.session == session else { throw DVRIPError.malformed }
+                guard packet.session == session else {
+                    RecordingProtocolDiagnostics.packet(packet, stage: stage, expectedMessage: message + 1, expectedSequence: sent, sessionMatches: false)
+                    throw DVRIPError.malformed
+                }
                 guard earlyMediaBytes <= 8 * 1024 * 1024 - packet.payload.count, earlyMedia.count < 1024 else { throw DVRIPError.responseTooLarge }
                 earlyMedia.append(packet); earlyMediaBytes += packet.payload.count
                 continue
             }
-            guard packet.message == message + 1, packet.sequence == sent, login || packet.session == session,
-                  packet.fragment == 0, packet.end == 0 else { throw DVRIPError.malformed }
+            // Control sequence bit zero identifies the reply side of a pair.
+            // Count0 is the implicit one-packet form; count1/index0 is explicit.
+            guard packet.message == message + 1, packet.sequence & ~UInt32(1) == sent & ~UInt32(1), login || packet.session == session,
+                  packet.fragment <= 1, packet.end == 0 else {
+                RecordingProtocolDiagnostics.packet(packet, stage: stage, expectedMessage: message + 1, expectedSequence: sent, sessionMatches: login || packet.session == session)
+                throw DVRIPError.malformed
+            }
             var json = packet.payload
             while json.last == 0 || json.last == 10 || json.last == 13 { json.removeLast() }
-            guard case .object(let reply) = try DeviceJSON.decode(json) else { throw DVRIPError.malformed }
-            if let token = reply["SessionID"] { guard try RecordingWire.unsigned(token) == packet.session else { throw DVRIPError.malformed } }
+            let decoded: DeviceJSON
+            do { decoded = try DeviceJSON.decode(json) }
+            catch {
+                RecordingProtocolDiagnostics.json(stage: stage, decodeFailure: true, objectValid: false, bodySessionPresent: false, bodySessionMatches: false)
+                throw error
+            }
+            guard case .object(let reply) = decoded else {
+                RecordingProtocolDiagnostics.json(stage: stage, decodeFailure: false, objectValid: false, bodySessionPresent: false, bodySessionMatches: false)
+                throw DVRIPError.malformed
+            }
+            if let token = reply["SessionID"] {
+                let matches = (try? RecordingWire.unsigned(token)) == UInt64(packet.session)
+                guard matches else {
+                    RecordingProtocolDiagnostics.json(stage: stage, decodeFailure: false, objectValid: true, bodySessionPresent: true, bodySessionMatches: false)
+                    throw DVRIPError.malformed
+                }
+            }
             if login { session = packet.session }
             return reply
         }
@@ -506,16 +597,19 @@ private actor RecordingProtocolSession {
             let packet = earlyMedia.removeFirst(); earlyMediaBytes -= packet.payload.count
             return packet
         }
-        let packet = try await next(deadline: deadline)
-        guard packet.session == session, packet.message == 1426 || packet.message == 1423 else { throw DVRIPError.malformed }
+        let packet = try await next(deadline: deadline, stage: .media)
+        guard packet.session == session, packet.message == 1426 || packet.message == 1423 else {
+            RecordingProtocolDiagnostics.packet(packet, stage: .media, expectedMessage: 1426, expectedSequence: nil, sessionMatches: packet.session == session)
+            throw DVRIPError.malformed
+        }
         return packet
     }
-    private func next(deadline: Date) async throws -> RecordingPacket {
+    private func next(deadline: Date, stage: RecordingProtocolStage) async throws -> RecordingPacket {
         while true {
             try Task.checkCancellation()
             guard !closed else { throw DVRIPError.disconnected }
             guard deadline.timeIntervalSinceNow > 0 else { throw DVRIPError.timeout }
-            if let packet = try framer.next() { return packet }
+            if let packet = try framer.next(stage: stage) { return packet }
             let bytes = try await transport.receive(deadline: deadline)
             guard !closed, !bytes.isEmpty else { throw DVRIPError.disconnected }
             try framer.append(bytes)
