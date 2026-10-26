@@ -168,7 +168,7 @@ private struct CameraMenuBarPreview: View {
                 Picker("Preview camera", selection: Binding(get: { store.menuBarCamera?.id }, set: { if let id = $0 { store.selectMenuBarCamera(id) } })) {
                     ForEach(store.cameras) { camera in Text(camera.name).tag(Optional(camera.id)) }
                 }
-                CameraVideo(session: store.session(camera))
+                CameraVideo(session: store.session(camera), profile: .preview)
                     .frame(width: 396, height: 223)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
             } else {

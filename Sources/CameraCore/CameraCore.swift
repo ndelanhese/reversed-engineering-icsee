@@ -56,7 +56,7 @@ public struct CameraEndpoint: Sendable, Equatable {
 }
 
 public enum DecoderFailure: Sendable {
-    case authentication, forbidden, unreachable, streamNotFound, videoMissing
+    case authentication, forbidden, unreachable, streamNotFound, videoMissing, hardwareUnavailable
     public var message: String {
         switch self {
         case .authentication: String(localized: "The camera rejected RTSP login (401). Check the device's local username and password.")
@@ -64,6 +64,7 @@ public enum DecoderFailure: Sendable {
         case .unreachable: String(localized: "Could not reach the camera. Check its address, port and network connection.")
         case .streamNotFound: String(localized: "The camera could not find this stream (404). Check the channel and Substream setting.")
         case .videoMissing: String(localized: "This channel did not provide video. Check the camera settings.")
+        case .hardwareUnavailable: String(localized: "Hardware video decoding is unavailable.")
         }
     }
 }
@@ -79,7 +80,8 @@ public struct DecoderDiagnostics: Sendable {
         if text.contains("401 unauthorized") || text.contains("authorization failed") {
             failure = .authentication
         } else if failure == nil {
-            if text.contains("403 forbidden") { failure = .forbidden }
+            if ["no device available for decoder", "device setup failed", "unrecognized hwaccel", "hardware accelerator failed to decode", "failed setup for format videotoolbox"].contains(where: text.contains) { failure = .hardwareUnavailable }
+            else if text.contains("403 forbidden") { failure = .forbidden }
             else if text.contains("404 not found") { failure = .streamNotFound }
             else if ["connection refused", "connection timed out", "no route to host", "network is unreachable"].contains(where: text.contains) {
                 failure = .unreachable

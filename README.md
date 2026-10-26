@@ -28,7 +28,7 @@ It is a small, unofficial interoperability project. It does not embed the Androi
 
 The interface follows your macOS preferred app language: **English or Brazilian Portuguese**, with English as the development-language fallback when no preferred supported language matches. macOS per-app language preferences are respected. Quit and reopen the app after changing its language in **System Settings → General → Language & Region → Applications**. User-entered camera names are preserved.
 
-Live video output is scaled to 1280 pixels wide and capped at 15 fps. Recorded video uses a separate native player at its stored resolution/cadence. Live/two-way audio, Mac-side live recording, cloud-account login and vendor P2P are not implemented. Camera-side recording/audio settings can be available through device controls. Remote viewing requires an already configured VPN into your home network; Reversed engineering Icsee does not configure one.
+Live output depends on the visible view: preview 480 pixels / 5 FPS, grid cards 800 pixels / 5 FPS, and cinema/floating/fullscreen up to 1280 pixels / 15 FPS. Hidden viewers pause decoding. Recorded video uses a separate native player at its stored resolution/cadence. Live/two-way audio, Mac-side live recording, cloud-account login and vendor P2P are not implemented. Camera-side recording/audio settings can be available through device controls. Remote viewing requires an already configured VPN into your home network; Reversed engineering Icsee does not configure one.
 
 ## Download and install
 
@@ -118,7 +118,7 @@ Do not forward camera ports to the public internet. Local RTSP is not an encrypt
 | SD-card history / playback / export | Camera menu **⋯ → Recordings…** |
 | Close popup | Native close button or `Command + W` |
 
-Closing a popup keeps the shared stream alive. Closing the main window keeps the app and active cameras running in the menu bar. Use `Command + Q` to stop all streams and exit.
+Closing the main window keeps the app in the menu bar. Live decoding pauses whenever a camera has no visible viewer, including closed, minimized or fully covered windows. Reopening a window or the preview resumes cameras connected during this app session, without asking for credentials again. Explicit **Stop** prevents automatic resume. Use `Command + Q` to exit.
 
 ## Menu bar preview
 
@@ -126,7 +126,7 @@ Hover over the lens icon in the macOS menu bar to see the selected camera. The p
 
 Choose **Preview camera** in the panel, or **⋯ → Use for menu bar preview** on a camera card. This default is saved between launches. Renaming preserves the choice; deleting the selected camera falls back to another saved camera.
 
-The preview shares the existing video connection with the grid and floating windows. Click the app’s Dock icon to reopen the main window. Connect cameras and open controls, recordings or enlarged views from the main app. Hovering never prompts for credentials or automatically starts a connection.
+The preview shares one video session per camera with the grid and floating windows. Preview alone uses 480-pixel-wide images at 5 FPS; grid cards use 800 pixels / 5 FPS, while cinema/floating/fullscreen views keep the existing 1280-pixel / 15 FPS limit. Hidden cameras stop their decoders and release the current frame. Hover resumes a previously connected camera using credentials kept in memory; it never reads Keychain or authenticates an unconnected camera. Click the app’s Dock icon to reopen the main window. Connect cameras and open controls, recordings or enlarged views from the main app. See [resource behavior and measurements](docs/PERFORMANCE.md).
 
 ## Camera controls
 
@@ -145,7 +145,8 @@ Passwords, derived Sofia credentials and decoded video still exist in process me
 ```sh
 python3 test.py --core-only  # deterministic protocol/parser checks; no camera needed
 python3 test.py              # adds native window lifecycle checks; desktop required
-python3 test.py --interactive # adds menu bar, scene reopening and fullscreen checks
+python3 Tools/build_ffmpeg.py # builds the decoder for live-video desktop fixtures
+python3 test.py --interactive # adds loopback RTSP, menu bar, scene reopening and fullscreen checks
 python3 build.py             # creates and verifies a signed arm64 .app
 ```
 

@@ -301,3 +301,6 @@
 "The system could not create a playable movie." = "The system could not create a playable movie.";
 "Native playback unavailable. Export original to save a fresh camera download." = "Native playback unavailable. Export original to save a fresh camera download.";
 "The camera's rounded frame rate differs from its recorded clock. Playback cadence is estimated from multiple keyframe timestamps; Camera time is interpolated with approximately one-second uncertainty." = "The camera's rounded frame rate differs from its recorded clock. Playback cadence is estimated from multiple keyframe timestamps; Camera time is interpolated with approximately one-second uncertainty.";
+
+"Paused while hidden" = "Paused while hidden";
+"Hardware video decoding is unavailable." = "Hardware video decoding is unavailable.";

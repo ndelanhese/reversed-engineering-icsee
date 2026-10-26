@@ -28,9 +28,9 @@ CONFIGURE = [
     '--enable-parser=h264,hevc,mjpeg,mpeg4video,h263,vp8,vp9',
     '--enable-decoder=h264,hevc,mjpeg,mpeg4,h263,vp8,vp9,rawvideo',
     '--enable-encoder=mjpeg', '--enable-muxer=image2pipe',
-    '--enable-filter=scale,format,null,buffer,buffersink',
+    '--enable-filter=fps,scale,format,null,buffer,buffersink',
     '--enable-bsf=extract_extradata,h264_mp4toannexb,hevc_mp4toannexb',
-    '--disable-videotoolbox', '--disable-audiotoolbox',
+    '--enable-videotoolbox', '--enable-hwaccel=h264_videotoolbox,hevc_videotoolbox', '--disable-audiotoolbox',
 ]
 
 

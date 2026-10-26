@@ -301,3 +301,6 @@
 "The system could not create a playable movie." = "O sistema não conseguiu criar um vídeo reproduzível.";
 "Native playback unavailable. Export original to save a fresh camera download." = "Reprodução nativa indisponível. Use Exportar original para baixar e salvar o arquivo da câmera.";
 "The camera's rounded frame rate differs from its recorded clock. Playback cadence is estimated from multiple keyframe timestamps; Camera time is interpolated with approximately one-second uncertainty." = "A taxa de quadros arredondada da câmera difere do relógio da gravação. A cadência é estimada a partir de vários quadros-chave; o horário da câmera é interpolado com incerteza de aproximadamente um segundo.";
+
+"Paused while hidden" = "Pausada enquanto oculta";
+"Hardware video decoding is unavailable." = "A decodificação de vídeo por hardware está indisponível.";

@@ -24,7 +24,7 @@ flowchart LR
 | File | Responsibility |
 | --- | --- |
 | `Sources/CameraCore/CameraCore.swift` | Endpoint validation and encoding, RTSP playlist generation, Sofia transformation, JPEG framing, diagnostic classification and liveness rules |
-| `Sources/ReversedEngineeringIcsee/CameraSession.swift` | FFmpeg process lifetime, pipes, background parsing, main-actor frame publication, watchdog and one compatibility retry |
+| `Sources/ReversedEngineeringIcsee/CameraSession.swift` | Visibility-driven FFmpeg lifetime, shared render demand, pipes, frame publication, watchdog and bounded compatibility/hardware fallback |
 | `Sources/ReversedEngineeringIcsee/CameraStore.swift` | Camera models, local preferences and Keychain operations |
 | `Sources/ReversedEngineeringIcsee/ReversedEngineeringIcseeApp.swift` | Main scene and native menu commands |
 | `Sources/ReversedEngineeringIcsee/CameraBoard.swift` | Camera grid, cinema selection and camera controls |
@@ -35,11 +35,11 @@ flowchart LR
 
 ## Lifecycle
 
-`CameraStore` owns one session per saved camera. Grid, cinema, popup and menu bar preview observe the same session. Changing a name preserves it; changing an endpoint stops the old stream. Closing a popup releases that view only. Removing a camera stops its session and removes its saved credentials. Closing the last window leaves the menu bar and active streams running. Application termination removes the status item and event monitor, closes auxiliary windows and stops all sessions.
+`CameraStore` owns one session per saved camera. Grid, cinema, popup and menu bar preview observe the same session. Changing a name preserves it; changing an endpoint stops the old stream. Closing a popup releases that view only. Removing a camera stops its session and removes its saved credentials. Closing the last viewer leaves the menu bar running and suspends live decoding; authenticated connection intent stays in memory until explicit Stop, failure or Quit. Each native video view registers demand only while its window is visible and unoccluded. The highest visible render profile wins, so opening a preview never downgrades a visible main or floating view. Application termination removes the status item and event monitor, closes auxiliary windows and stops all sessions.
 
 Each stream has a generation identifier so completion or frames from an old decoder cannot update a replacement connection. Initial connection times out after 20 seconds without a frame; an established stream times out after 12 seconds without a new frame. A 401 before any frame triggers at most one retry using a Sofia-derived query credential. Errors after successful video do not silently enter a retry loop.
 
-FFmpeg decodes the selected video stream, drops audio, scales output to a width of 1280 pixels and caps output at 15 fps. Frames cross stdout as MJPEG; Swift displays decoded `NSImage` instances. This favors a simple implementation over native compressed-stream playback efficiency. Multiple cameras can use substantial CPU.
+FFmpeg requests VideoToolbox hardware decoding, with one software fallback if hardware setup fails before a frame arrives. Decoder, filter and encoder threads are bounded. Cinema/floating/fullscreen views use the existing 1280-pixel-width / 15 FPS cap; grid cards use 800 pixels / 5 FPS; preview alone drops frames before scaling/JPEG encoding to 480 pixels / 5 FPS. Audio is discarded. MJPEG frames cross stdout and Swift displays `NSImage` instances. Only image changes invalidate the video view; repeated live-state/frame-count assignments do not invalidate the surrounding board. Hidden demand cancels the watchdog, closes the decoder and drops the frame. Native occlusion, minimize, close, application hide and sleep notifications drive updates without polling. Active video still has CPU, GPU and memory costs; see [performance measurements](PERFORMANCE.md).
 
 ## Build and test decisions
 
@@ -55,11 +55,11 @@ Localization uses standard `en.lproj` and `pt-BR.lproj` bundles. English is the 
 
 Direct `swiftc` builds avoided an incompatible Swift Package Manager `PackageDescription` module in the original local toolchain. `ViewState` explicitly names `SwiftUI.State` to avoid an SDK macro name collision in that environment. Neither workaround is a runtime dependency.
 
-`test.py --core-only` runs deterministic parser/protocol checks and a fixture app bundle in separate processes with volatile `AppleLanguages` arguments. Cases cover English, `en-BR`, `pt-BR`, `pt-PT`, an unsupported language and ordered preferences; catalogs and interpolation types are checked too. User system preferences are never changed. Default tests additionally check native popup ownership, reuse, reopening, empty first launch and saved-profile restoration. `--interactive` also checks rendered English/Portuguese SwiftUI, native fullscreen and Escape; it needs an active desktop. None of these tests opens a real camera connection.
+`test.py --core-only` runs deterministic parser/protocol checks and a fixture app bundle in separate processes with volatile `AppleLanguages` arguments. Cases cover English, `en-BR`, `pt-BR`, `pt-PT`, an unsupported language and ordered preferences; catalogs and interpolation types are checked too. User system preferences are never changed. Default tests additionally check native popup ownership, reuse, reopening, empty first launch and saved-profile restoration. `--interactive` also checks real frames from a loopback-only synthetic RTSP peer, preview/window render demand, suspend/resume, menu selection, rendered English/Portuguese SwiftUI, native fullscreen and Escape; it needs an active desktop. None of these tests opens a real camera connection.
 
 ## Menu bar lifecycle
 
-An app-owned `CameraAppLifecycle` installs one `NSStatusItem` and `NSPopover` after the main SwiftUI scene appears. Native tracking opens the preview after a short hover and allows pointer handoff into the panel. Clicks pin the preview while selecting a camera. The panel contains only the selector and video. No hover path touches Keychain or starts FFmpeg. The chosen camera UUID is a separate preferences key; camera profile encoding and credential service identifiers stay unchanged.
+An app-owned `CameraAppLifecycle` installs one `NSStatusItem` and `NSPopover` after the main SwiftUI scene appears. Native tracking opens the preview after a short hover and allows pointer handoff into the panel. Clicks pin the preview while selecting a camera. The panel contains only the selector and video. Hover never touches Keychain. Opening a visible preview resumes its previously authenticated session if needed; a never-connected or explicitly stopped camera stays disconnected. The chosen camera UUID is a separate preferences key; camera profile encoding and credential service identifiers stay unchanged.
 
 The popover observes the same store and session as the other views. The Dock reopen delegate routes to the production main-window `OpenWindowAction` to reopen the closed scene. Explicit Quit removes tracking/monitor resources and cancels pending hover work before stopping sessions. Interactive fixtures cover native popover behavior and closing/reopening the actual SwiftUI scene without camera connections.
 

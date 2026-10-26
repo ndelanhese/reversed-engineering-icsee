@@ -91,7 +91,7 @@ struct CameraTile: View {
     var recordings: (() -> Void)? = nil
     var body: some View {
         VStack(spacing: 0) {
-            CameraVideo(session: session).aspectRatio(16/9, contentMode: .fit)
+            CameraVideo(session: session, profile: .grid).aspectRatio(16/9, contentMode: .fit)
                 .onTapGesture(count: 2, perform: cinema).help("Double-click for cinema mode")
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {

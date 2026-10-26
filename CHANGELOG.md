@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.2 — 2026-10-26
+
+- Pause live decoding and release frames when all camera viewers are closed, minimized, fully covered or hidden, and during system sleep. Resume visible viewers using their in-memory authenticated session; explicit Stop stays stopped.
+- Use a 480-pixel / 5 FPS menu-only preview and an 800-pixel / 5 FPS grid while preserving the existing 1280-pixel / 15 FPS limit for cinema, floating windows and fullscreen. Share one session per camera across viewers.
+- Enable VideoToolbox with software fallback, bound FFmpeg thread counts and avoid per-frame board status updates.
+- Close the live output reader before awaiting decoder diagnostics, preventing FFmpeg shutdown from hanging on a full JPEG pipe.
+- Add native energy regressions using synthetic RTSP video, including hover, camera selection and window/sleep transitions.
+
 ## 0.6.1 — 2026-10-26
 
 - Focus the menu bar preview on its camera selector and larger video; remove action rows, status text and the footer.

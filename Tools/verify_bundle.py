@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def run(arguments, **kwargs):
-    return subprocess.check_output(arguments, stderr=subprocess.STDOUT, timeout=30, **kwargs)
+    return subprocess.check_output(arguments, stderr=kwargs.pop('stderr', subprocess.STDOUT), timeout=30, **kwargs)
 
 
 def verify(app):
@@ -61,13 +61,16 @@ def verify(app):
     if not re.search(r'\bconcat\b', formats) or not re.search(r'\brtsp\b', formats):
         raise SystemExit('FAIL: decoder lacks required concat/RTSP support')
     for name, demuxer in [('blue.h264', 'h264'), ('blue.hevc', 'hevc')]:
-        frames = run([str(ffmpeg), '-hide_banner', '-loglevel', 'error', '-f', demuxer,
-            '-i', str(ROOT / 'Tests/Fixtures' / name), '-map', '0:v:0', '-an',
-            '-vf', 'scale=1280:-2', '-fpsmax', '15', '-q:v', '5', '-c:v', 'mjpeg',
-            '-f', 'image2pipe', 'pipe:1'], env=environment)
-        if not frames.startswith(b'\xff\xd8') or not frames.endswith(b'\xff\xd9') or frames.count(b'\xff\xd8') != 2:
-            raise SystemExit(f'FAIL: {demuxer} fixture did not produce two JPEG frames')
-    print('PASS: icon, strict signature, arm64/macOS 14, system-only dependencies, notices, offline H.264/HEVC decode')
+        for hardware in [False, True]:
+            frames = run([str(ffmpeg), '-hide_banner', '-loglevel', 'error', '-threads', '1',
+                *(['-hwaccel', 'videotoolbox'] if hardware else []), '-f', demuxer,
+                '-i', str(ROOT / 'Tests/Fixtures' / name), '-map', '0:v:0', '-an',
+                '-filter_threads', '1', '-vf', 'scale=1280:-2', '-fpsmax', '15', '-q:v', '5',
+                '-threads', '1', '-c:v', 'mjpeg', '-f', 'image2pipe', 'pipe:1'],
+                env=environment, stderr=subprocess.PIPE)
+            if not frames.startswith(b'\xff\xd8') or not frames.endswith(b'\xff\xd9') or frames.count(b'\xff\xd8') != 2:
+                raise SystemExit(f'FAIL: {demuxer} fixture did not produce two JPEG frames (hardware={hardware})')
+    print('PASS: icon, strict signature, arm64/macOS 14, system-only dependencies, notices, offline H.264/HEVC decode with hardware request and software path')
 
 
 if __name__ == '__main__':
