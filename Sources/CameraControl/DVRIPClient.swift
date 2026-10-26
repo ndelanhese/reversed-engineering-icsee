@@ -72,7 +72,7 @@ private final class DVRIPCompletion<Value: Sendable>: @unchecked Sendable {
     }
 }
 
-private final class DVRIPTCPTransport: DVRIPTransport, @unchecked Sendable {
+final class DVRIPTCPTransport: DVRIPTransport, @unchecked Sendable {
     private let connection: NWConnection
     private let queue = DispatchQueue(label: "local.CamMac.DVRIP")
     init(host: String, port: UInt16) {

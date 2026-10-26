@@ -68,3 +68,9 @@ The popover observes the same store and session as the other views. `OpenWindowA
 Native control windows share the existing video session but own independent ONVIF and DVRIP clients. `ONVIFClient` handles bounded SOAP/XML, authentication, profiles/options, movement/presets and imaging writes. `DVRIPClient` handles framed TCP sessions, serialized configuration transactions and keepalive. `DeviceJSON` preserves structured values and applies edited leaves to fresh values with conflict checks.
 
 `CameraControlModel` owns per-camera tasks and generation guards, capability/error state, drafts, discovery and movement cleanup. `CameraControlsView` and `DeviceSettingsEditor` provide native controls without automatic writes. `CameraWindows` retains closed-window cleanup tasks; `CameraAppLifecycle` delays normal termination until movement/restart cleanup completes. See [control guide](CAMERA_CONTROLS.md) for limits and validation.
+
+## SD-card recording sessions
+
+`DVRIPRecordingClient` owns separate authenticated query/download transports, typed camera wall-clock values and bounded history/calendar/storage operations. Its media framer preserves download flags without loosening the settings client's JSON rules. `RecordingMediaParser` and `RecordingMovieWriter` turn completed raw XM streams into timestamped native movies, validate actual decoding and retain explicit source/movie mappings and audio/timing disclosures.
+
+`CameraRecordingsModel` owns the player, queries, transfer/conversion/export tasks and one private temporary directory. Generation guards prevent retired operations from replacing a new selection. `CameraRecordingsView` provides calendar/list/timeline, native AVPlayerView and explicit exports. `CameraWindows` tracks its shutdown together with existing control cleanup; live `CameraSession` remains independent. See [recordings guide](RECORDINGS.md).

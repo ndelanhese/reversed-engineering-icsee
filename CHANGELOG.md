@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.0 — 2026-10-25
+
+- Add local SD-card calendar, camera-time daily history, channel/stream selection and a recording timeline.
+- Download recordings into a private cache, with explicit completion, progress, cancellation and incomplete-transfer rejection.
+- Play native H.264/HEVC movies with seek, speed, previous/next and supported G.711 audio converted to AAC.
+- Export original camera files, complete movies and keyframe-aligned intervals without modifying the card.
+- Preserve camera-time gaps, disclose estimated frame/audio timing and retain originals when native conversion is unavailable.
+- Validate every decoded video frame before publishing a native movie; test corruption, cancellation, query pagination and independent live-session lifetime.
+
 ## 0.5.0 — 2026-10-25
 
 - Add native ONVIF movement, Stop, profile selection, presets and camera-provided image controls.

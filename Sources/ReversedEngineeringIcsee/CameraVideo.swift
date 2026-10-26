@@ -34,6 +34,7 @@ struct CameraStage: View {
     var isFullscreen = false
     var connect: () -> Void
     var controls: (() -> Void)? = nil
+    var recordings: (() -> Void)? = nil
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 16) {
@@ -46,6 +47,10 @@ struct CameraStage: View {
                     Label("Live", systemImage: "circle.fill").font(.caption).foregroundStyle(.green)
                 }
                 Spacer(minLength: 8)
+                if let recordings {
+                    Button(action: recordings) { Image(systemName: "clock.arrow.circlepath") }
+                        .help("Recordings").accessibilityLabel("Recordings")
+                }
                 if let controls {
                     Button(action: controls) { Image(systemName: "slider.horizontal.3") }
                         .help("Camera controls").accessibilityLabel("Camera controls")

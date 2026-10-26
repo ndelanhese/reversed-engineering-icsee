@@ -21,10 +21,23 @@ Sem vínculo com iCSee ou Xiongmai. Compatibilidade depende do firmware e do RTS
 - Diagnóstico de conexão e detecção de vídeo congelado.
 - Movimento PTZ curto, parada, posições salvas e imagem conforme os perfis e opções da câmera.
 - Ajustes locais descobertos, com edição estruturada, detecção de conflitos e verificação por leitura.
+- Calendário e histórico do cartão SD, reprodução nativa, busca por horário, velocidade e exportação do original, vídeo ou intervalo.
 
 Interface segue idioma preferido no macOS: **inglês ou português brasileiro**, respeitando ordem de preferências e idioma específico por app. Inglês é fallback quando nenhum idioma preferido compatível é encontrado. Após mudar em **Ajustes do Sistema → Geral → Idioma e Região → Aplicativos**, encerre e reabra app. Nomes das câmeras permanecem como você definiu.
 
-Áudio ao vivo/bidirecional, gravação no Mac, reprodução do cartão SD, login na nuvem e P2P não foram implementados. Ajustes de gravação/áudio na própria câmera podem estar disponíveis nos controles do dispositivo. Acesso remoto depende de VPN já configurada; o app não instala nem configura VPN.
+Áudio ao vivo/bidirecional, gravação do vídeo ao vivo no Mac, login na nuvem e P2P não foram implementados. Gravações do cartão são reproduzidas separadamente, com áudio G.711 convertido para AAC quando compatível. Ajustes de gravação/áudio na própria câmera podem estar disponíveis nos controles do dispositivo. Acesso remoto depende de VPN já configurada; o app não instala nem configura VPN.
+
+## Gravações do cartão SD
+
+Abra **⋯ → Gravações…** na câmera. A janela também está disponível na prévia da barra de menus e nas visualizações ampliadas. Autentique com as credenciais locais ou reutilize o login em memória quando o vídeo já estiver conectado.
+
+Escolha mês, dia, canal e fluxo. Os pontos no calendário indicam dias informados pela câmera; quando a consulta mensal não for compatível, selecione qualquer dia para consultá-lo diretamente. A linha do tempo usa o **horário local da câmera**, preservado sem conversão silenciosa para o fuso do Mac. Clique em um intervalo gravado ou escolha um horário para reproduzir.
+
+O trecho escolhido é baixado para um cache privado antes da reprodução. Há pausa, busca, avanço/retorno de 15 segundos, seleção de velocidade e troca de gravação. Os arquivos do cartão permanecem intactos. **Exportar original…** preserva o formato da câmera; **Exportar vídeo…** gera um `.mov` nativo; **Exportar intervalo…** mostra os limites efetivos alinhados a quadros-chave. Não são cortes garantidos entre quaisquer dois quadros.
+
+Os horários entre quadros-chave e o alinhamento do áudio são estimados a partir dos dados disponíveis no protocolo. Lacunas permanecem identificadas. Áudio incompatível é informado; o original permanece exportável se a conversão falhar. Downloads incompletos não viram vídeos concluídos. O cache é removido ao trocar de gravação ou fechar a janela; exportações escolhidas por você permanecem.
+
+Consultas e downloads têm limites de tamanho, tempo e paginação. A busca inclui as 24 horas anteriores ao dia escolhido para encontrar gravações atravessando a meia-noite; arquivos iniciados antes desse intervalo podem ficar fora da lista. Não há exclusão, formatação ou alteração automática no cartão. Veja [detalhes técnicos e escopo de validação](docs/RECORDINGS.md).
 
 ## Baixar e instalar
 
