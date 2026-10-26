@@ -1,0 +1,32 @@
+[package]
+name = "icsee-core"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[lib]
+name = "icsee_core"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+serde = { version = "=1.0.228", features = ["derive"] }
+serde_json = "=1.0.145"
+md5 = "=0.7.0"
+sha1 = "=0.10.6"
+sha2 = "=0.10.9"
+base64 = "=0.22.1"
+getrandom = "=0.2.16"
+chrono = { version = "=0.4.42", default-features = false, features = ["clock", "std"] }
+url = "=2.5.7"
+ureq = { version = "=2.12.1", default-features = false }
+xmltree = "=0.11.0"
+xml-rs = "=0.8.29"
+
+[target.'cfg(target_os = "android")'.dependencies]
+jni = "=0.21.1"
+
+[profile.release]
+lto = true
+strip = true
+codegen-units = 1
