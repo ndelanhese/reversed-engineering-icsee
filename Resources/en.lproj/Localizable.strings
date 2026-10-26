@@ -244,7 +244,6 @@
 "Interval" = "Interval";
 "Keyframe-aligned export: %@ – %@" = "Keyframe-aligned export: %@ – %@";
 "Monthly calendar unavailable. Select any day to search it directly." = "Monthly calendar unavailable. Select any day to search it directly.";
-"Native playback unavailable. You can export the original camera file." = "Native playback unavailable. You can export the original camera file.";
 "Next month" = "Next month";
 "Next recording" = "Next recording";
 "No recording covers this time. Select a recorded interval on the timeline." = "No recording covers this time. Select a recorded interval on the timeline.";
@@ -276,12 +275,10 @@
 "The camera returned a partial recording list. Some recordings may be missing." = "The camera returned a partial recording list. Some recordings may be missing.";
 "The camera returned an invalid recording time." = "The camera returned an invalid recording time.";
 "The history query reached its safety limit. Some recordings may be missing." = "The history query reached its safety limit. Some recordings may be missing.";
-"The recording could not be exported. The original download was kept." = "The recording could not be exported. The original download was kept.";
 "The recording could not be saved in the private cache." = "The recording could not be saved in the private cache.";
 "The requested time falls in a gap in the downloaded recording." = "The requested time falls in a gap in the downloaded recording.";
 "This recording exceeds the download limit." = "This recording exceeds the download limit.";
 "Wait for the previous recording download to stop." = "Wait for the previous recording download to stop.";
-"The recording contains malformed or incomplete media. The original file is still available." = "The recording contains malformed or incomplete media. The original file is still available.";
 "A recording frame exceeds the supported size limit." = "A recording frame exceeds the supported size limit.";
 "The recording has invalid or backward camera timestamps." = "The recording has invalid or backward camera timestamps.";
 "The recording does not declare a valid frame rate." = "The recording does not declare a valid frame rate.";
@@ -291,7 +288,6 @@
 "The recording has no complete video decoder configuration." = "The recording has no complete video decoder configuration.";
 "The recording contains no decodable video." = "The recording contains no decodable video.";
 "The movie destination already exists." = "The movie destination already exists.";
-"The system could not create a playable movie. The original file is still available." = "The system could not create a playable movie. The original file is still available.";
 "Movie conversion exceeded its processing deadline." = "Movie conversion exceeded its processing deadline.";
 "A recording conversion is already running." = "A recording conversion is already running.";
 "The recording exceeds the supported conversion size or duration. Export the original file instead." = "The recording exceeds the supported conversion size or duration. Export the original file instead.";
@@ -300,3 +296,8 @@
 "Playback begins at the first independently decodable keyframe, which can be later than the recording's listed start time." = "Playback begins at the first independently decodable keyframe, which can be later than the recording's listed start time.";
 "Audio is present as AAC. Its alignment is inferred from packet order and sample counts because XM audio has no absolute timestamps." = "Audio is present as AAC. Its alignment is inferred from packet order and sample counts because XM audio has no absolute timestamps.";
 "Audio is unsupported or the platform audio encoder is unavailable. This movie contains video only; export the original file to retain its audio data." = "Audio is unsupported or the platform audio encoder is unavailable. This movie contains video only; export the original file to retain its audio data.";
+"The recording could not be exported. No incomplete export was saved." = "The recording could not be exported. No incomplete export was saved.";
+"The recording contains malformed or incomplete media." = "The recording contains malformed or incomplete media.";
+"The system could not create a playable movie." = "The system could not create a playable movie.";
+"Native playback unavailable. Export original to save a fresh camera download." = "Native playback unavailable. Export original to save a fresh camera download.";
+"The camera's rounded frame rate differs from its recorded clock. Playback cadence is estimated from multiple keyframe timestamps; Camera time is interpolated with approximately one-second uncertainty." = "The camera's rounded frame rate differs from its recorded clock. Playback cadence is estimated from multiple keyframe timestamps; Camera time is interpolated with approximately one-second uncertainty.";

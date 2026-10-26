@@ -42,6 +42,19 @@ import AVFoundation
         for byte in wire { bytewiseFrames += try bytewise.append(Data([byte])) }
         try bytewise.finish()
         try check(bytewiseFrames.count == 4, "One-byte chunk stream")
+        let paddingLength = 1024 - wire.count % 1024
+        let padded = wire + Data(repeating: 0xFF, count: paddingLength)
+        for split in 0...padded.count {
+            var p = RecordingMediaParser()
+            let decoded = try p.append(Data(padded.prefix(split))) + p.append(Data(padded.dropFirst(split)))
+            try p.finish()
+            try check(decoded.count == 4, "Only aligned bounded FF EOF padding is accepted across every split")
+        }
+        try rejects(.invalidHeader) { var p = RecordingMediaParser(); _ = try p.append(wire + Data(repeating: 0xFF, count: 1024)); try p.finish() }
+        try rejects(.invalidHeader) { var p = RecordingMediaParser(); _ = try p.append(wire + Data(repeating: 0xFF, count: 1)); try p.finish() }
+        try rejects(.invalidHeader) { var p = RecordingMediaParser(); _ = try p.append(padded); _ = try p.append(key()); try p.finish() }
+        try rejects(.invalidHeader) { var p = RecordingMediaParser(); _ = try p.append(Data(repeating: 0xFF, count: 1024)); try p.finish() }
+        try rejects(.invalidHeader) { var p = RecordingMediaParser(); _ = try p.append(wire + Data([0xFF,0xFF,0,0xFF])); try p.finish() }
         var dimensions = key(); dimensions[4] |= 0x90
         try check(try RecordingMediaParser.frame(dimensions).width == 2112 && RecordingMediaParser.frame(dimensions).height == 4160, "Extended dimension bits")
         try check(G711.decode(0xD5, codec: 14) == 8 && G711.decode(0x55, codec: 14) == -8, "A-law silence vectors")
@@ -69,6 +82,32 @@ import AVFoundation
         _ = try declaredCadence.stamp(differentFPS)
         var sevenParser = RecordingMediaParser(); let sevenFrames = try sevenParser.append(key(fps: 7) + delta())
         try check(abs(try declaredCadence.stamp(sevenFrames[1]) - 1.0 / 7) < 0.000001, "No hardcoded frame rate")
+        var roundedClock = RecordingMediaClock()
+        var roundedParser = RecordingMediaParser()
+        var roundedWire = Data()
+        for index in 0..<3750 {
+            let seconds = Int(Double(index) / 12.5)
+            let packed = UInt32(seconds % 60) | UInt32(seconds / 60) << 6
+            roundedWire += index % 36 == 0 ? key(second: packed, fps: 12) : delta()
+        }
+        let roundedFrames = try roundedParser.append(roundedWire)
+        for frame in roundedFrames { _ = try roundedClock.stamp(frame) }
+        let corrected = try roundedClock.correctedFrameDuration ?? { throw Failure.failed("Rounded camera FPS was not identified") }()
+        try check(abs(1 / corrected - 12.5) < 0.01 && roundedClock.gapCount == 0, "Many coarse anchors recover rounded fractional cadence without inventing gaps")
+        var calibrated = RecordingMediaClock(frameDuration: corrected)
+        var previousTime = -1.0
+        for frame in roundedFrames {
+            let time = try calibrated.stamp(frame)
+            try check(time > previousTime, "Calibrated native PTS remain strictly increasing")
+            previousTime = time
+        }
+        let mapped = MovieResult(url: URL(fileURLWithPath: "/synthetic"), duration: calibrated.duration, cameraOrigin: calibrated.origin!, mappingSegments: calibrated.finalizedMappings, keyframeTimes: calibrated.keyframeTimes, audioStatus: .none, notices: [])
+        try check(abs(calibrated.duration - 300) < 0.1, "Fractional cadence avoids multi-second drift")
+        for (index, frame) in roundedFrames.enumerated() where frame.kind == .key {
+            let time = Double(index) * corrected
+            try check(abs((mapped.cameraTime(at: time) ?? .distantPast).timeIntervalSince(frame.cameraTime!)) < 0.001, "Affine camera mapping honors recorded coarse key anchors")
+        }
+        try rejects(.backwardClock) { _ = try calibrated.stamp(try RecordingMediaParser.frame(key(second: 1, fps: 12))) }
         try await nativeMovies()
         print("PASS: XM incremental framing, bounds, clock, quantization, configuration and G711 vectors")
     }
@@ -89,7 +128,7 @@ import AVFoundation
                 try check(abs(result.duration - 3) < 0.01, "Native movie retains declared cadence and duration")
                 try check(result.keyframeTimes.count == 3 && zip(result.keyframeTimes, [0.0,1,2]).allSatisfy { abs($0 - $1) < 0.001 }, "Keyframe export anchors")
                 try check(result.mappingSegments.count == 1 && result.cameraTime(at: 1.5) == result.cameraOrigin.addingTimeInterval(1.5), "Movie/camera mapping")
-                try check(result.movieTime(for: result.cameraOrigin.addingTimeInterval(2)) == 2, "Camera-to-movie seek mapping")
+                try check(abs((result.movieTime(for: result.cameraOrigin.addingTimeInterval(2)) ?? -1) - 2) < 0.000001, "Camera-to-movie seek mapping")
                 let expected: RecordingAudioStatus = audio == 0 ? .none : audio == 8 ? .unsupported : .inferredAlignment
                 try check(result.audioStatus == expected, "Audio is native AAC or explicitly unsupported")
                 try check(try Data(contentsOf: raw) == data, "Raw input retained")
@@ -181,6 +220,22 @@ import AVFoundation
         try check(sawPartial && !files.fileExists(atPath: activeCancelURL.path), "Active writer cancellation observed and removed partial")
         try check(try files.contentsOfDirectory(atPath: directory.path).allSatisfy { !$0.contains("partial.mov") }, "All owned partials removed")
         try check(try Data(contentsOf: movie) == sentinel && files.fileExists(atPath: longRaw.path), "Cancellation retains neighbours and original")
+        var roundedNative = Data()
+        for index in 0..<3000 {
+            let frame = originalFrames[index % originalFrames.count]
+            let seconds = Int(Double(index) / 12.5)
+            let packed = UInt32(seconds % 60) | UInt32(seconds / 60) << 6
+            roundedNative += frame.kind == .key ? key(second: packed, fps: 12, payload: frame.payload) : delta(frame.payload)
+            roundedNative += Data([0,0,1,0xFA,14,2,128,2]) + Data(repeating: 0xD5, count: 640)
+        }
+        let roundedPadding = (1024 - roundedNative.count % 1024) % 1024
+        roundedNative += Data(repeating: 0xFF, count: roundedPadding)
+        let roundedRaw = directory.appendingPathComponent("rounded-fps.xm")
+        try roundedNative.write(to: roundedRaw)
+        let rounded = try await writer.convert(rawURL: roundedRaw, movieURL: directory.appendingPathComponent("rounded-fps.mov"))
+        try check(abs(rounded.duration - 240) < 1 && rounded.audioStatus == .inferredAlignment, "Native rounded FPS video/audio stay near measured camera duration")
+        try check(rounded.notices.contains { $0.contains("rounded frame rate") }, "Cadence correction and uncertainty are disclosed")
+        try check(try Data(contentsOf: roundedRaw) == roundedNative, "Padding/cadence conversion leaves input unchanged")
     }
 
     static func fixture(codec: UInt8, audio: UInt8, repeats: Int = 1) throws -> Data {

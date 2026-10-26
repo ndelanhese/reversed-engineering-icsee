@@ -108,9 +108,13 @@ class Server(socketserver.ThreadingTCPServer):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("raw", type=Path)
+    parser.add_argument("--invalid-media", action="store_true")
     args = parser.parse_args()
     server = Server(("127.0.0.1", 0), Peer)
-    server.state = State(args.raw.read_bytes())
+    raw = bytearray(args.raw.read_bytes())
+    if args.invalid_media:
+        raw[0] = 255
+    server.state = State(bytes(raw))
     threading.Thread(target=server.serve_forever, daemon=True).start()
     print(json.dumps({"controlPort": server.server_address[1]}), flush=True)
     stopped = threading.Event()

@@ -67,8 +67,8 @@ for name, files, test, timeout in control_tests:
 recording_raw = build / 'recording-fixture.xm'
 subprocess.run([str(build/'recording-media'), '--write-fixture', str(recording_raw)], check=True)
 
-def run_recording_fixture(arguments=()):
-    peer = subprocess.Popen([sys.executable, str(root/'Tests/RecordingFixtureServer.py'), str(recording_raw)],
+def run_recording_fixture(arguments=(), server_arguments=()):
+    peer = subprocess.Popen([sys.executable, str(root/'Tests/RecordingFixtureServer.py'), str(recording_raw), *server_arguments],
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     try:
         if not select.select([peer.stdout], [], [], 10)[0]:
@@ -85,6 +85,7 @@ def run_recording_fixture(arguments=()):
 subprocess.run(['swiftc', '-swift-version', '6', '-target', 'arm64-apple-macos14.0', '-parse-as-library', *sources,
                 str(root/'Tests/CameraRecordingsTest.swift'), '-o', str(build/'camera-recordings')], check=True)
 run_recording_fixture()
+run_recording_fixture(('--failure',), ('--invalid-media',))
 
 flow_test = build / 'camera-control-flow'
 subprocess.run(['swiftc', '-swift-version', '6', '-target', 'arm64-apple-macos14.0', '-parse-as-library', *sources,

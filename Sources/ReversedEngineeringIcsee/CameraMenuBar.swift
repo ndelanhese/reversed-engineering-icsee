@@ -9,6 +9,7 @@ final class CameraAppLifecycle: NSObject, NSApplicationDelegate {
     private var terminationPending = false
     func configure(store: CameraStore, windows: CameraWindows, openMain: @escaping () -> Void) {
         guard menuBar == nil else { return }
+        RecordingPrivateDirectory.removeOrphans()
         self.store = store
         self.windows = windows
         let menu = CameraMenuBar(store: store, windows: windows, openMain: openMain)

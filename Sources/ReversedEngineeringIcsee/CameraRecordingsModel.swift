@@ -57,6 +57,7 @@ final class CameraRecordingsModel {
     @ObservationIgnored private var cleanupTask: Task<Void, Never>?
     @ObservationIgnored private var mediaCleanup: Task<Void, Never>?
     @ObservationIgnored private var cache: RecordingPrivateDirectory?
+    @ObservationIgnored private let cacheBaseURL: URL
     @ObservationIgnored private var timeObserver: Any?
     @ObservationIgnored private var exportSession: AVAssetExportSession?
     private var generation = UUID()
@@ -64,8 +65,9 @@ final class CameraRecordingsModel {
     private var playbackID = UUID()
     private var exportID = UUID()
 
-    init(camera: Camera) {
+    init(camera: Camera, cacheBaseURL: URL = FileManager.default.temporaryDirectory) {
         self.camera = camera; channel = max(0, camera.channel - 1); substream = camera.substream
+        self.cacheBaseURL = cacheBaseURL
         let local = Calendar.current.dateComponents([.year, .month, .day], from: Date())
         selectedDay = Self.clockCalendar.date(from: local)!
     }
@@ -167,9 +169,10 @@ final class CameraRecordingsModel {
             var directory: RecordingPrivateDirectory?
             do {
                 try Task.checkCancellation()
-                let prepared = try RecordingPrivateDirectory(); directory = prepared
+                guard let self else { return }
+                let prepared = try RecordingPrivateDirectory(baseURL: self.cacheBaseURL); directory = prepared
                 try prepared.checkSpace(estimatedBytes: recording.estimatedBytes)
-                guard let self, self.generation == stamp, self.playbackID == ticket else { prepared.remove(); return }
+                guard self.generation == stamp, self.playbackID == ticket else { prepared.remove(); return }
                 self.cache = prepared
                 try await client.connect()
                 try await client.download(recording: recording, to: prepared.rawURL) { [weak self] progress in
@@ -203,8 +206,7 @@ final class CameraRecordingsModel {
             } catch {
                 guard let self, self.generation == stamp, self.playbackID == ticket, !Task.isCancelled else { directory?.remove(); return }
                 self.downloading = false; self.converting = false; self.error = NSLocalizedString(error.localizedDescription, comment: "")
-                // A complete raw download remains exportable when native conversion is unsupported.
-                if !self.rawAvailable { directory?.remove(); self.cache = nil }
+                directory?.remove(); self.cache = nil; self.rawAvailable = false
             }
         }
     }
@@ -230,17 +232,40 @@ final class CameraRecordingsModel {
         play(records[index + direction])
     }
     func exportOriginal(to destination: URL) {
-        guard rawAvailable, !exporting, let source = cache?.rawURL else { return }
-        exporting = true; error = nil
+        guard connected, !querying, !transferActive, !exporting, let client = backend, let recording = selectedRecording else { return }
+        let source = rawAvailable ? cache?.rawURL : nil
+        let gate = mediaCleanup
+        exporting = true; error = nil; receivedBytes = 0
         let ticket = UUID(); exportID = ticket
         exportTask = Task { [weak self] in
+            var temporary: RecordingPrivateDirectory?
+            defer {
+                temporary?.remove()
+                if self?.exportID == ticket { self?.exporting = false }
+            }
             do {
                 try Task.checkCancellation()
-                guard self?.exportID == ticket else { throw CancellationError() }
-                try await Self.publishFile(source, to: destination)
-                if self?.exportID == ticket { self?.exportNotice = String(localized: "Original camera file exported. This format may require a compatible player.") }
+                guard let self, self.exportID == ticket else { throw CancellationError() }
+                if let source { try await Self.publishFile(source, to: destination) }
+                else {
+                    await gate?.value
+                    try Task.checkCancellation()
+                    guard self.exportID == ticket else { throw CancellationError() }
+                    let directory = try RecordingPrivateDirectory(baseURL: self.cacheBaseURL); temporary = directory
+                    try directory.checkSpace(estimatedBytes: recording.estimatedBytes)
+                    try await client.connect()
+                    try await client.download(recording: recording, to: directory.rawURL) { [weak self] progress in
+                        Task { @MainActor in
+                            guard let self, self.exportID == ticket else { return }
+                            self.receivedBytes = progress.receivedBytes
+                        }
+                    }
+                    try Task.checkCancellation()
+                    guard self.exportID == ticket else { throw CancellationError() }
+                    try await Self.publishFile(directory.rawURL, to: destination)
+                }
+                if self.exportID == ticket { self.exportNotice = String(localized: "Original camera file exported. This format may require a compatible player.") }
             } catch { if self?.exportID == ticket && !Task.isCancelled { self?.error = RecordingPresentationError.exportFailed.localizedDescription } }
-            if self?.exportID == ticket { self?.exporting = false }
         }
     }
     func exportMovie(to destination: URL, interval: Bool) {

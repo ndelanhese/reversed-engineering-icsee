@@ -34,18 +34,42 @@ import AppKit
         let store = CameraStore(defaults: defaults), windows = CameraWindows()
         let live = store.session(camera); live.state = .live; live.frames = 7
         let useWindow = CommandLine.arguments.contains("--window")
+        let cacheBase = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: cacheBase, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
+        defer { try? FileManager.default.removeItem(at: cacheBase) }
         let model: CameraRecordingsModel
         if useWindow {
             guard let opened = windows.openRecordings(camera: camera, store: store) else { throw Failure.failed("Window missing") }
             model = opened
             try check(windows.openRecordings(camera: camera, store: store) === model, "One model/window per camera")
-        } else { model = CameraRecordingsModel(camera: camera) }
+        } else { model = CameraRecordingsModel(camera: camera, cacheBaseURL: cacheBase) }
         model.authenticate(Credentials(username: "fixture", password: UUID().uuidString))
         try await wait("recording discovery") { model.connected && !model.querying && model.records.count == 2 }
         try check(model.error == nil && model.calendarDays == [25], "Calendar/status query")
         try check(model.notices.contains { $0.contains("partial") }, "Partial listing disclosed")
         try check(model.cameraClock?.wire == "2026-10-25 00:01:03", "Camera clock preserved")
         let day = model.selectedDay
+        if CommandLine.arguments.contains("--failure") {
+            model.play(model.records[0])
+            try await wait("invalid media cleanup") { !model.transferActive && model.error != nil }
+            try check(model.movie == nil && !model.rawAvailable, "Failed playback never retains a cache entry")
+            let failedCache = try FileManager.default.contentsOfDirectory(atPath: cacheBase.path)
+            try check(failedCache.isEmpty, "Failed playback removes all temporary files")
+            let saved = cacheBase.appendingPathComponent("explicit-original.xm")
+            model.exportOriginal(to: saved)
+            try await wait("explicit original redownload") { !model.exporting }
+            try check(FileManager.default.fileExists(atPath: saved.path), "Explicit Save can download original after conversion failure")
+            let exportedCache = try FileManager.default.contentsOfDirectory(atPath: cacheBase.path)
+            try check(exportedCache == ["explicit-original.xm"], "Explicit export leaves only selected saved file")
+            let cancelled = cacheBase.appendingPathComponent("cancelled-original.xm")
+            model.exportOriginal(to: cancelled)
+            model.disconnect(); await model.shutdown()
+            try check(!FileManager.default.fileExists(atPath: cancelled.path), "Queued original export cannot start after disconnect")
+            try check(FileManager.default.fileExists(atPath: saved.path), "Cleanup preserves explicit Save")
+            try check(live.state == .live, "Failure/export cleanup preserves live session")
+            print("PASS: failed playback deletes cache, explicit Save redownloads original, cancellation preserves saved files")
+            return
+        }
         model.selectCameraTime(day.addingTimeInterval(30))
         try check(model.error != nil && model.selectedRecording == nil, "Gap never silently selects footage")
         model.play(model.records[0], at: day.addingTimeInterval(1.5))

@@ -14,7 +14,10 @@ import Foundation
                 preconditionFailure("Invalid export range accepted")
             } catch RecordingPresentationError.invalidRange { }
         }
-        let directory = try RecordingPrivateDirectory()
+        let base = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: base, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: base) }
+        let directory = try RecordingPrivateDirectory(baseURL: base)
         let mode = try FileManager.default.attributesOfItem(atPath: directory.url.path)[.posixPermissions] as? NSNumber
         precondition(mode?.intValue == 0o700)
         precondition(directory.rawURL.deletingLastPathComponent() == directory.url)
@@ -24,6 +27,15 @@ import Foundation
         directory.remove()
         precondition(!FileManager.default.fileExists(atPath: directory.url.path))
         precondition(FileManager.default.fileExists(atPath: sibling.path))
+        let live = try RecordingPrivateDirectory(baseURL: base)
+        let stale = base.appendingPathComponent("icsee-recording-2147483647-" + UUID().uuidString)
+        try FileManager.default.createDirectory(at: stale, withIntermediateDirectories: false)
+        let linked = base.appendingPathComponent("icsee-recording-2147483647-" + UUID().uuidString)
+        try FileManager.default.createSymbolicLink(at: linked, withDestinationURL: live.url)
+        RecordingPrivateDirectory.removeOrphans(baseURL: base)
+        precondition(!FileManager.default.fileExists(atPath: stale.path))
+        precondition(FileManager.default.fileExists(atPath: live.url.path))
+        precondition((try? FileManager.default.destinationOfSymbolicLink(atPath: linked.path)) != nil)
         print("PASS: keyframe export bounds, invalid ranges and isolated private cache permissions/cleanup")
     }
 }

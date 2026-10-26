@@ -1,4 +1,5 @@
 import Foundation
+import Darwin
 
 enum RecordingPresentationError: Error, LocalizedError {
     case invalidRange, insufficientSpace, exportFailed
@@ -6,7 +7,7 @@ enum RecordingPresentationError: Error, LocalizedError {
         switch self {
         case .invalidRange: String(localized: "Select a valid interval within the recording.")
         case .insufficientSpace: String(localized: "Not enough free disk space to prepare this recording.")
-        case .exportFailed: String(localized: "The recording could not be exported. The original download was kept.")
+        case .exportFailed: String(localized: "The recording could not be exported. No incomplete export was saved.")
         }
     }
 }
@@ -28,8 +29,8 @@ struct RecordingPrivateDirectory: Sendable {
     let url: URL
     var rawURL: URL { url.appendingPathComponent("original.xm") }
     var movieURL: URL { url.appendingPathComponent("recording.mov") }
-    init() throws {
-        url = FileManager.default.temporaryDirectory.appendingPathComponent("icsee-recording-" + UUID().uuidString, isDirectory: true)
+    init(baseURL: URL = FileManager.default.temporaryDirectory) throws {
+        url = baseURL.appendingPathComponent("icsee-recording-\(ProcessInfo.processInfo.processIdentifier)-" + UUID().uuidString, isDirectory: true)
         try FileManager.default.createDirectory(at: url, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
     }
     func checkSpace(estimatedBytes: UInt64?) throws {
@@ -39,6 +40,20 @@ struct RecordingPrivateDirectory: Sendable {
         guard free > estimate * 2 + 64 * 1024 * 1024 else { throw RecordingPresentationError.insufficientSpace }
     }
     func remove() { try? FileManager.default.removeItem(at: url) }
+    static func removeOrphans(baseURL: URL = FileManager.default.temporaryDirectory) {
+        let files = FileManager.default
+        guard let entries = try? files.contentsOfDirectory(at: baseURL, includingPropertiesForKeys: [.isDirectoryKey, .isSymbolicLinkKey]) else { return }
+        for entry in entries where entry.lastPathComponent.hasPrefix("icsee-recording-") {
+            let identity = entry.lastPathComponent.dropFirst("icsee-recording-".count).split(separator: "-", maxSplits: 1, omittingEmptySubsequences: false)
+            guard identity.count == 2, let pid = Int32(identity[0]), pid > 0, String(pid) == identity[0], UUID(uuidString: String(identity[1])) != nil,
+                  let values = try? entry.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey]),
+                  values.isDirectory == true, values.isSymbolicLink != true,
+                  let attributes = try? files.attributesOfItem(atPath: entry.path),
+                  (attributes[.ownerAccountID] as? NSNumber)?.uint32Value == getuid() else { continue }
+            // Never touch an active process's cache or an inaccessible process.
+            if kill(pid, 0) == -1 && errno == ESRCH { try? files.removeItem(at: entry) }
+        }
+    }
 }
 
 func recordingDuration(_ seconds: TimeInterval) -> String {

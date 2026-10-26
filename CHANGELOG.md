@@ -1,12 +1,14 @@
 # Changelog
 
-## 0.6.0 — 2026-10-25
+## 0.6.0 — 2026-10-26
 
 - Add local SD-card calendar, camera-time daily history, channel/stream selection and a recording timeline.
 - Download recordings into a private cache, with explicit completion, progress, cancellation and incomplete-transfer rejection.
 - Play native H.264/HEVC movies with seek, speed, previous/next and supported G.711 audio converted to AAC.
 - Export original camera files, complete movies and keyframe-aligned intervals without modifying the card.
-- Preserve camera-time gaps, disclose estimated frame/audio timing and retain originals when native conversion is unavailable.
+- Handle rounded fractional frame rates and bounded camera-file EOF padding; verify a real five-minute HEVC/G.711 recording through native conversion and all-frame decode.
+- Preserve camera-time gaps and disclose estimated frame/audio timing.
+- Delete failed playback cache immediately and clean orphaned process caches at launch. Only explicit Save exports persist; original export can download again after a playback failure.
 - Validate every decoded video frame before publishing a native movie; test corruption, cancellation, query pagination and independent live-session lifetime.
 
 ## 0.5.0 — 2026-10-25

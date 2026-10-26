@@ -129,7 +129,7 @@ struct CameraRecordingsView: View {
                     VStack(spacing: 10) {
                         Image(systemName: "play.rectangle").font(.system(size: 40))
                         Text("Select a recording or a recorded time.")
-                        if model.rawAvailable { Text("Native playback unavailable. You can export the original camera file.").font(.caption) }
+                        if model.selectedRecording != nil && model.error != nil { Text("Native playback unavailable. Export original to save a fresh camera download.").font(.caption) }
                     }.foregroundStyle(.secondary).multilineTextAlignment(.center).padding()
                 }
             }.frame(minHeight: 260, maxHeight: .infinity).clipShape(RoundedRectangle(cornerRadius: 12))
@@ -163,10 +163,13 @@ struct CameraRecordingsView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Button("Export original…", systemImage: "square.and.arrow.up") { save(original: true, interval: false) }
-                    .disabled(!model.rawAvailable || model.exporting || model.transferActive)
+                    .disabled(model.selectedRecording == nil || !model.connected || model.querying || model.exporting || model.transferActive)
                 Button("Export movie…") { save(original: false, interval: false) }.disabled(model.movie == nil || model.exporting)
                 Spacer()
-                if model.exporting { ProgressView().controlSize(.small); Text("Exporting…").font(.caption) }
+                if model.exporting {
+                    ProgressView().controlSize(.small); Text("Exporting…").font(.caption)
+                    if model.receivedBytes > 0 { Text(ByteCountFormatter.string(fromByteCount: Int64(clamping: model.receivedBytes), countStyle: .file)).font(.caption.monospacedDigit()) }
+                }
             }
             if model.movie != nil {
                 HStack {
@@ -281,7 +284,7 @@ private struct RecordingTimelineView: View {
         model.records.flatMap { recording in
             if model.selectedRecording?.id == recording.id, let movie = model.movie {
                 return movie.mappingSegments.enumerated().map { index, segment in
-                    Interval(id: recording.id + "-\(index)", recordingID: recording.id, start: segment.cameraStart, end: segment.cameraStart.addingTimeInterval(segment.duration))
+                    Interval(id: recording.id + "-\(index)", recordingID: recording.id, start: segment.cameraStart, end: segment.cameraStart.addingTimeInterval(segment.cameraDuration))
                 }
             }
             return [Interval(id: recording.id, recordingID: recording.id, start: recording.begin.date, end: recording.end.date)]

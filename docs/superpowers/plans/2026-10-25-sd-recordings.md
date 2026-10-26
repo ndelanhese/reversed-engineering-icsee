@@ -25,29 +25,33 @@ Files: new Sources/CameraRecordings/RecordingTypes.swift, DVRIPRecordingClient.s
 
 Interfaces: CameraRecordingTime validated wall-clock type with comparable arithmetic/date representation; CameraRecording stable opaque id/fileName, begin/end, channel/stream, estimatedBytes; RecordingCalendar day set; RecordingListing records plus completeness/warnings. Actor DVRIPRecordingClient(host:port:username:password:), connect(), disconnect(), cameraTime(), storage(), calendar(year:month:), recordings(day:channel:substream:), download(recording:to:progress:) async throws. Finalize exact signatures/types with root before implementation. Download writes raw XM data only to supplied private URL; progress is Sendable and bounded; returns only after explicit EOS. Root owns media conversion.
 
-- [ ] RED tests for clock validation/masks/pagination and bounded preceding-window query for files crossing midnight, then implement queries and safe errors. Unsupported calendar means unknown, with daily-query fallback.
-- [ ] RED tests for claim/download framing, split/coalesced media, empty/1423/endflag EOF, sequence/session mismatch, deadlines, no partial retry, cancellation and byte limits; implement.
-- [ ] Run focused Swift6 tests with synthetic localhost peers; report protocol choices and remaining compatibility limits. Do not touch live cameras, Keychain, root app integration or commit other workers' files.
+- [x] RED tests for clock validation/masks/pagination and bounded preceding-window query for files crossing midnight, then implement queries and safe errors. Unsupported calendar means unknown, with daily-query fallback.
+- [x] RED tests for claim/download framing, split/coalesced media, empty/1423/endflag EOF, sequence/session mismatch, deadlines, no partial retry, cancellation and byte limits; implement.
+- [x] Run focused Swift6 tests with synthetic localhost peers; report protocol choices and remaining compatibility limits. Do not touch live cameras, Keychain, root app integration or commit other workers' files.
 
 ## Task2 — XM parser and native movie conversion (worker)
 
 Files: new Sources/CameraRecordings/RecordingMedia.swift and RecordingMovieWriter.swift; Tests/RecordingMediaTest.swift. Pure media types are independent from Task1: frame carries kind/codec, payload, keyframe time components/FPS/dimensions. Converter consumes raw private file and returns a validated movie/result with duration/audio/timing notices. Finalize API with root before implementation.
 
-- [ ] RED tests for chunk splits/coalescing, overflow/truncation, keyframe clocks and FPS, parameter sets, G711 vectors and discontinuities; implement parser with bounded memory.
-- [ ] Native synthetic H264/HEVC fixture conversion verifies valid duration, AVPlayer-compatible samples, accurate declared cadence and audio presence/explicit unsupported status. Test cancellation/finalization removes partial outputs.
-- [ ] Implement AVAssetWriter passthrough H264/HEVC and supported audio. No new FFmpeg dependency/config changes or copied upstream implementation.
+- [x] RED tests for chunk splits/coalescing, overflow/truncation, keyframe clocks and FPS, parameter sets, G711 vectors and discontinuities; implement parser with bounded memory.
+- [x] Native synthetic H264/HEVC fixture conversion verifies valid duration, AVPlayer-compatible samples, accurate declared cadence and audio presence/explicit unsupported status. Test cancellation/finalization removes partial outputs.
+- [x] Implement AVAssetWriter passthrough H264/HEVC and supported audio. No new FFmpeg dependency/config changes or copied upstream implementation.
 
 ## Task3 — Native history/player window and integration (root)
 
 Files: new CameraRecordingsModel.swift, CameraRecordingsView.swift and timeline/calendar components as needed; modify CameraWindows/Board/Video/MenuBar/Forms and locale resources. Native reusable credential sheet and memory credentials; one recordings model/window per camera. Separate playback and raw/movie cache. Calendar/day navigation, typed channel/stream selection, daily timeline/list, selectable wall time, native player seek/rates, previous/next, download cancel and explicit original/movie/interval export.
 
-- [ ] Add focused model/window fixtures for stale async results, gaps, cache cleanup and live lifetime.
-- [ ] Integrate close/remove/edit/disconnect-all/Quit without breaking control Stop/restart wait.
-- [ ] Build and run targeted protocol/media/model fixtures then full existing interactive suite once source is stable.
+- [x] Add focused model/window fixtures for stale async results, gaps, cache cleanup and live lifetime.
+- [x] Integrate close/remove/edit/disconnect-all/Quit without breaking control Stop/restart wait.
+- [x] Build and run targeted protocol/media/model fixtures then full existing interactive suite once source is stable.
 
 ## Task4 — Review, real validation and delivery (root + independent reviewers)
 
-- [ ] Review backend/media tasks independently before accepting dependencies; resolve material findings.
-- [ ] Read-only live history/download/playback using normal native credentials when possible; record tested scope and never alter card contents.
-- [ ] Update guides/provenance/changelog/version, verify signed portable bundle and secret scan.
+- [x] Review backend/media tasks independently before accepting dependencies; resolve material findings.
+- [x] Read-only live history/download/playback using normal native credentials when possible; record tested scope and never alter card contents.
+- [x] Update guides/provenance/changelog/version, verify signed portable bundle and secret scan.
 - [ ] Install stable-signed local build preserving profiles/Keychain; protected PR, required CI, merge and publish release with five expected artifacts.
+
+## Final hardware and privacy follow-up
+
+Owner confirmed calendar/history and a completed download. Native offline validation of that private five-minute download decoded all 3,749 HEVC frames with AAC audio after correcting rounded frame-rate metadata and aligned terminal padding. Playback still requires a complete clip download. Failed playback removes temporary media; original export after failure requires an explicit Save and a fresh private download. Synthetic tests cover failure cleanup, Save redownload, cancellation and safe dead-process cache cleanup. The full native interactive regression suite passed.

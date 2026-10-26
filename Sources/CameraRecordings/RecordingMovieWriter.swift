@@ -6,7 +6,7 @@ import CoreMedia
 /// Owns only a randomly named partial movie. Input and caller-owned files are never removed.
 actor RecordingMovieWriter {
     private var converting = false
-    private var active: (writer: AVAssetWriter, video: AVAssetWriterInput, audio: AVAssetWriterInput?, audioFormat: CMAudioFormatDescription?, videoFormat: CMVideoFormatDescription)?
+    private var active: (writer: AVAssetWriter, video: AVAssetWriterInput, audio: AVAssetWriterInput?, audioFormat: CMAudioFormatDescription?, videoFormat: CMVideoFormatDescription, frameDuration: Double?)?
     private let maximumInputBytes: UInt64
     init(maximumInputBytes: UInt64 = 2 * 1024 * 1024 * 1024) { self.maximumInputBytes = maximumInputBytes }
 
@@ -22,10 +22,15 @@ actor RecordingMovieWriter {
         let deadline = Date().addingTimeInterval(30 * 60)
         var scan = RecordingMovieScan()
         try await frames(rawURL, deadline: deadline) { frame in try scan.consume(frame) }
+        let calibratedPeriod = scan.clock.correctedFrameDuration
+        if let calibratedPeriod {
+            scan = RecordingMovieScan(frameDuration: calibratedPeriod)
+            try await frames(rawURL, deadline: deadline) { frame in try scan.consume(frame) }
+        }
         guard let format = scan.format, let origin = scan.clock.origin, scan.clock.duration > 0 else { throw RecordingMediaError.noVideo }
         let setup = try Self.startWriter(url: partial, format: format, audioRequested: scan.hasAudioAfterStart && !scan.unsupportedAudio)
         let (writer, video, audio, audioFormat) = setup
-        active = (writer, video, audio, audioFormat, format)
+        active = (writer, video, audio, audioFormat, format, calibratedPeriod)
         defer { active = nil }
         defer { if writer.status == .writing { writer.cancelWriting() } }
         let audioStatus: RecordingAudioStatus = audio != nil ? .inferredAlignment : scan.hasAudio ? .unsupported : .none
@@ -60,11 +65,12 @@ actor RecordingMovieWriter {
         // FileManager move fails if a different task created the target during conversion.
         try files.moveItem(at: partial, to: movieURL)
         var notices = ["Video frame times are estimated from declared FPS and whole-second camera keyframe timestamps; original high-resolution PTS/DTS are unavailable."]
-        if scan.clock.mappingSegments.count > 1 { notices.append("Camera timestamp gaps are preserved. Playback may hold the preceding image during a gap.") }
+        if scan.clock.gapCount > 0 { notices.append("Camera timestamp gaps are preserved. Playback may hold the preceding image during a gap.") }
+        if calibratedPeriod != nil { notices.append("The camera's rounded frame rate differs from its recorded clock. Playback cadence is estimated from multiple keyframe timestamps; Camera time is interpolated with approximately one-second uncertainty.") }
         if scan.skippedLeadingVideo { notices.append("Playback begins at the first independently decodable keyframe, which can be later than the recording's listed start time.") }
         if audioStatus == .inferredAlignment { notices.append("Audio is present as AAC. Its alignment is inferred from packet order and sample counts because XM audio has no absolute timestamps.") }
         if audioStatus == .unsupported { notices.append("Audio is unsupported or the platform audio encoder is unavailable. This movie contains video only; export the original file to retain its audio data.") }
-        return MovieResult(url: movieURL, duration: duration, cameraOrigin: origin, mappingSegments: scan.clock.mappingSegments, keyframeTimes: scan.clock.keyframeTimes, audioStatus: audioStatus, notices: notices)
+        return MovieResult(url: movieURL, duration: duration, cameraOrigin: origin, mappingSegments: scan.clock.finalizedMappings, keyframeTimes: scan.clock.keyframeTimes, audioStatus: audioStatus, notices: notices)
     }
 
     private func validateDecodedVideo(_ asset: AVURLAsset, expectedFrames: Int, deadline: Date) async throws {
@@ -142,10 +148,10 @@ actor RecordingMovieWriter {
 
     private func writeVideo(_ rawURL: URL, deadline: Date) async throws {
         guard let active else { throw RecordingMediaError.writerFailed }
-        var state = RecordingMovieScan()
+        var state = RecordingMovieScan(frameDuration: active.frameDuration)
         try await frames(rawURL, deadline: deadline) { frame in
             guard let sample = try state.consume(frame) else { return }
-            let buffer = try Self.videoSample(sample.bytes, format: active.videoFormat, time: state.lastTime, duration: 1 / Double(frame.fps), sync: sample.sync)
+            let buffer = try Self.videoSample(sample.bytes, format: active.videoFormat, time: state.lastTime, duration: state.clock.sampleDuration, sync: sample.sync)
             try await append(buffer, to: active.video, writer: active.writer, deadline: deadline)
         }
         active.video.markAsFinished()
@@ -153,7 +159,7 @@ actor RecordingMovieWriter {
 
     private func writeAudio(_ rawURL: URL, deadline: Date) async throws {
         guard let active, let input = active.audio, let format = active.audioFormat else { return }
-        var state = RecordingMovieScan()
+        var state = RecordingMovieScan(frameDuration: active.frameDuration)
         var nextTime: Double?
         var segmentCount = 0
         try await frames(rawURL, deadline: deadline) { frame in
@@ -162,8 +168,8 @@ actor RecordingMovieWriter {
             // XM audio has no timestamps. Infer a first position from packet order,
             // then count PCM samples, starting another run across a camera gap.
             var time = nextTime ?? state.lastTime
-            if state.clock.mappingSegments.count != segmentCount { time = max(time, state.lastTime) }
-            segmentCount = state.clock.mappingSegments.count
+            if state.clock.gapCount != segmentCount { time = max(time, state.lastTime) }
+            segmentCount = state.clock.gapCount
             let buffer = try Self.audioSample(Self.decodeAudio(frame.payload, codec: frame.codec), format: format, time: time)
             try await append(buffer, to: input, writer: active.writer, deadline: deadline)
             nextTime = time + Double(frame.payload.count) / 8000
@@ -287,6 +293,7 @@ private struct RecordingMovieScan {
     var hasAudioAfterStart = false
     var unsupportedAudio = false
     private var audioConfiguration: (UInt8, Int)?
+    init(frameDuration: Double? = nil) { clock = RecordingMediaClock(frameDuration: frameDuration) }
 
     @discardableResult mutating func consume(_ frame: RecordingMediaFrame) throws -> RecordingCompressedSample? {
         if frame.kind == .picture { throw RecordingMediaError.unsupportedVideo }

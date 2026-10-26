@@ -244,7 +244,6 @@
 "Interval" = "Intervalo";
 "Keyframe-aligned export: %@ – %@" = "Exportação alinhada a quadros-chave: %@ – %@";
 "Monthly calendar unavailable. Select any day to search it directly." = "Calendário mensal indisponível. Escolha qualquer dia para consultá-lo diretamente.";
-"Native playback unavailable. You can export the original camera file." = "Reprodução nativa indisponível. Você pode exportar o arquivo original da câmera.";
 "Next month" = "Próximo mês";
 "Next recording" = "Próxima gravação";
 "No recording covers this time. Select a recorded interval on the timeline." = "Nenhuma gravação cobre este horário. Escolha um intervalo gravado na linha do tempo.";
@@ -276,12 +275,10 @@
 "The camera returned a partial recording list. Some recordings may be missing." = "A câmera retornou uma lista parcial. Algumas gravações podem estar ausentes.";
 "The camera returned an invalid recording time." = "A câmera retornou um horário de gravação inválido.";
 "The history query reached its safety limit. Some recordings may be missing." = "A consulta ao histórico atingiu o limite de segurança. Algumas gravações podem estar ausentes.";
-"The recording could not be exported. The original download was kept." = "Não foi possível exportar a gravação. O download original foi preservado.";
 "The recording could not be saved in the private cache." = "Não foi possível salvar a gravação no cache privado.";
 "The requested time falls in a gap in the downloaded recording." = "O horário solicitado está em uma lacuna da gravação baixada.";
 "This recording exceeds the download limit." = "Esta gravação excede o limite de download.";
 "Wait for the previous recording download to stop." = "Aguarde o encerramento do download anterior.";
-"The recording contains malformed or incomplete media. The original file is still available." = "A gravação contém mídia inválida ou incompleta. O arquivo original continua disponível.";
 "A recording frame exceeds the supported size limit." = "Um quadro da gravação excede o limite de tamanho permitido.";
 "The recording has invalid or backward camera timestamps." = "A gravação contém horários inválidos ou regressivos da câmera.";
 "The recording does not declare a valid frame rate." = "A gravação não informa uma taxa de quadros válida.";
@@ -291,7 +288,6 @@
 "The recording has no complete video decoder configuration." = "A gravação não contém uma configuração completa para decodificar o vídeo.";
 "The recording contains no decodable video." = "A gravação não contém vídeo decodificável.";
 "The movie destination already exists." = "O arquivo de vídeo de destino já existe.";
-"The system could not create a playable movie. The original file is still available." = "O sistema não conseguiu criar um vídeo reproduzível. O arquivo original continua disponível.";
 "Movie conversion exceeded its processing deadline." = "A conversão do vídeo excedeu o prazo de processamento.";
 "A recording conversion is already running." = "Já há uma conversão de gravação em andamento.";
 "The recording exceeds the supported conversion size or duration. Export the original file instead." = "A gravação excede o tamanho ou a duração permitidos para conversão. Exporte o arquivo original.";
@@ -300,3 +296,8 @@
 "Playback begins at the first independently decodable keyframe, which can be later than the recording's listed start time." = "A reprodução começa no primeiro quadro-chave decodificável, que pode ser posterior ao início informado na lista de gravações.";
 "Audio is present as AAC. Its alignment is inferred from packet order and sample counts because XM audio has no absolute timestamps." = "O vídeo contém áudio AAC. O alinhamento é estimado pela ordem dos pacotes e pela contagem de amostras, pois o áudio XM não informa horários absolutos.";
 "Audio is unsupported or the platform audio encoder is unavailable. This movie contains video only; export the original file to retain its audio data." = "O áudio não é compatível ou o codificador de áudio do sistema está indisponível. Este vídeo não contém áudio; exporte o arquivo original para preservar esses dados.";
+"The recording could not be exported. No incomplete export was saved." = "Não foi possível exportar a gravação. Nenhuma exportação incompleta foi salva.";
+"The recording contains malformed or incomplete media." = "A gravação contém mídia inválida ou incompleta.";
+"The system could not create a playable movie." = "O sistema não conseguiu criar um vídeo reproduzível.";
+"Native playback unavailable. Export original to save a fresh camera download." = "Reprodução nativa indisponível. Use Exportar original para baixar e salvar o arquivo da câmera.";
+"The camera's rounded frame rate differs from its recorded clock. Playback cadence is estimated from multiple keyframe timestamps; Camera time is interpolated with approximately one-second uncertainty." = "A taxa de quadros arredondada da câmera difere do relógio da gravação. A cadência é estimada a partir de vários quadros-chave; o horário da câmera é interpolado com incerteza de aproximadamente um segundo.";
