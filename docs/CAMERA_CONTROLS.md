@@ -1,6 +1,6 @@
 # Native camera controls
 
-Open a camera's **⋯ → Camera controls…** menu. The same controls are available from cinema/floating views and the menu bar preview. Each camera has one control window; opening it again brings that window forward.
+Open a camera's **⋯ → Camera controls…** menu. The same controls are available from cinema/floating views. Each camera has one control window; opening it again brings that window forward.
 
 ## Connect
 

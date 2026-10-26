@@ -12,11 +12,16 @@ final class CameraAppLifecycle: NSObject, NSApplicationDelegate {
         RecordingPrivateDirectory.removeOrphans()
         self.store = store
         self.windows = windows
-        let menu = CameraMenuBar(store: store, windows: windows, openMain: openMain)
+        let menu = CameraMenuBar(store: store, openMain: openMain)
         menuBar = menu
         menu.install()
     }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        guard let menuBar else { return true }
+        menuBar.openMainWindow()
+        return false
+    }
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         guard let windows, windows.hasControlsToShutdown else { return .terminateNow }
         guard !terminationPending else { return .terminateLater }
@@ -39,7 +44,6 @@ final class CameraMenuBar: NSObject, NSPopoverDelegate {
     private(set) var statusItem: NSStatusItem?
     private let popover = NSPopover()
     private let store: CameraStore
-    private let windows: CameraWindows
     private let openMain: () -> Void
     private var trackingArea: NSTrackingArea?
     private var clickMonitor: Any?
@@ -50,9 +54,8 @@ final class CameraMenuBar: NSObject, NSPopoverDelegate {
     private var pinned = false
     var isShown: Bool { popover.isShown }
 
-    init(store: CameraStore, windows: CameraWindows, openMain: @escaping () -> Void) {
+    init(store: CameraStore, openMain: @escaping () -> Void) {
         self.store = store
-        self.windows = windows
         self.openMain = openMain
     }
     func install() {
@@ -71,9 +74,9 @@ final class CameraMenuBar: NSObject, NSPopoverDelegate {
         popover.behavior = .transient
         popover.animates = false
         popover.delegate = self
-        popover.contentSize = NSSize(width: 380, height: 330)
+        popover.contentSize = NSSize(width: 420, height: 280)
         popover.contentViewController = NSHostingController(rootView: CameraMenuBarPreview(store: store, menuBar: self))
-        // Any explicit interaction pins the panel before a picker or sheet moves the pointer away.
+        // Pin before the camera picker moves the pointer outside the panel.
         clickMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { [weak self] event in
             MainActor.assumeIsolated {
                 if let self, self.isShown, event.window === self.popover.contentViewController?.view.window { self.pin() }
@@ -131,18 +134,10 @@ final class CameraMenuBar: NSObject, NSPopoverDelegate {
         if isShown && pinned { popover.close() }
         else { pin(); showPreview() }
     }
-    func setAuthenticating(_ active: Bool) {
-        if active { pin() }
-        popover.behavior = active ? .applicationDefined : .transient
-    }
     func openMainWindow() { popover.close(); NSApp.activate(); openMain() }
-    func openPopup(_ camera: Camera) { popover.close(); windows.open(camera: camera, store: store) }
-    func openControls(_ camera: Camera) { popover.close(); windows.openControls(camera: camera, store: store) }
-    func openRecordings(_ camera: Camera) { popover.close(); windows.openRecordings(camera: camera, store: store) }
     func popoverDidClose(_ notification: Notification) {
         pinned = false; overPreview = false
         closeTask?.cancel()
-        popover.behavior = .transient
     }
     private static func icon() -> NSImage {
         let image = NSImage(size: NSSize(width: 18, height: 18), flipped: false) { _ in
@@ -167,47 +162,23 @@ final class CameraMenuBar: NSObject, NSPopoverDelegate {
 private struct CameraMenuBarPreview: View {
     @Bindable var store: CameraStore
     let menuBar: CameraMenuBar
-    @ViewState private var authenticating: Camera?
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 10) {
             if let camera = store.menuBarCamera {
                 Picker("Preview camera", selection: Binding(get: { store.menuBarCamera?.id }, set: { if let id = $0 { store.selectMenuBarCamera(id) } })) {
                     ForEach(store.cameras) { camera in Text(camera.name).tag(Optional(camera.id)) }
                 }
                 CameraVideo(session: store.session(camera))
-                    .aspectRatio(16 / 9, contentMode: .fit)
+                    .frame(width: 396, height: 223)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
-                HStack {
-                    Text(store.session(camera).state.label).font(.caption).foregroundStyle(.secondary)
-                    Spacer()
-                    if store.session(camera).state == .live || store.session(camera).state == .connecting {
-                        Button("Stop", systemImage: "stop.fill") { store.session(camera).stop() }
-                    } else {
-                        Button("Connect") { menuBar.setAuthenticating(true); authenticating = camera }
-                    }
-                    Button("Floating window", systemImage: "rectangle.on.rectangle") { menuBar.openPopup(camera) }
-                }.controlSize(.small)
-                Button("Camera controls…", systemImage: "slider.horizontal.3") { menuBar.openControls(camera) }
-                    .controlSize(.small)
-                Button("Recordings…", systemImage: "clock.arrow.circlepath") { menuBar.openRecordings(camera) }
-                    .controlSize(.small)
             } else {
                 ContentUnavailableView("No cameras", systemImage: "video", description: Text("Add an address and credentials to get started."))
                     .frame(height: 220)
             }
-            Divider()
-            HStack {
-                Button("Open app", systemImage: "macwindow") { menuBar.openMainWindow() }
-                Spacer()
-                Button("Quit") { NSApp.terminate(nil) }
-            }.buttonStyle(.borderless)
         }
-        .padding(14).frame(width: 380)
+        .padding(12).frame(width: 420)
         .onHover { inside in
             if inside { menuBar.pointerEnteredPreview() } else { menuBar.pointerExitedPreview() }
-        }
-        .sheet(item: $authenticating, onDismiss: { menuBar.setAuthenticating(false) }) { camera in
-            CredentialSheet(camera: camera) { credentials in store.sessions[camera.id]?.start(camera: camera, credentials: credentials) }
         }
     }
 }

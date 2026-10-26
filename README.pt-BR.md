@@ -29,7 +29,7 @@ Interface segue idioma preferido no macOS: **inglês ou português brasileiro**,
 
 ## Gravações do cartão SD
 
-Abra **⋯ → Gravações…** na câmera. A janela também está disponível na prévia da barra de menus e nas visualizações ampliadas. Autentique com as credenciais locais ou reutilize o login em memória quando o vídeo já estiver conectado.
+Abra **⋯ → Gravações…** na câmera. A janela também está disponível nas visualizações ampliadas. Autentique com as credenciais locais ou reutilize o login em memória quando o vídeo já estiver conectado.
 
 Escolha mês, dia, canal e fluxo. Os pontos no calendário indicam dias informados pela câmera; quando a consulta mensal não for compatível, selecione qualquer dia para consultá-lo diretamente. A linha do tempo usa o **horário local da câmera**, preservado sem conversão silenciosa para o fuso do Mac. Clique em um intervalo gravado ou escolha um horário para reproduzir.
 
@@ -125,19 +125,19 @@ Não exponha portas das câmeras na internet. RTSP local não é transporte crip
 | Renomear / configurar conexão | Menu **⋯** |
 | Fechar popup | Botão nativo ou `Command + W` |
 
-Fechar popup mantém a transmissão compartilhada. Fechar a janela principal mantém o app e as câmeras ativas na barra de menus. Use **Sair** na prévia ou `Command + Q` para encerrar o app e todas as transmissões.
+Fechar popup mantém a transmissão compartilhada. Fechar a janela principal mantém o app e as câmeras ativas na barra de menus. Use `Command + Q` para encerrar o app e todas as transmissões.
 
 ## Prévia na barra de menus
 
-Passe o mouse sobre o ícone de lente na barra de menus do macOS para ver a câmera selecionada. Entre no painel para usar os controles; sair do ícone e do painel fecha a prévia. Clique no ícone para manter o painel aberto e clique novamente ou fora dele para fechar.
+Passe o mouse sobre o ícone de lente na barra de menus do macOS para ver a câmera selecionada. O painel contém somente o seletor de câmera e o vídeo; sair do ícone e do painel fecha a prévia. Clique no ícone para manter o painel aberto e clique novamente ou fora dele para fechar.
 
 Escolha **Câmera da prévia** no painel ou **⋯ → Usar na prévia da barra de menus** no cartão da câmera. A escolha permanece entre aberturas do app. Renomear preserva a seleção; excluir a câmera selecionada escolhe outra câmera salva.
 
-A prévia compartilha a conexão existente com a grade e os popups. Se estiver desconectada, clique **Conectar** para informar ou carregar credenciais salvas. Passar o mouse não pede senha nem inicia conexão automaticamente. **Abrir app** reabre a janela principal; **Popup flutuante** abre uma visualização maior.
+A prévia compartilha a conexão existente com a grade e os popups. Clique no ícone do app no Dock para reabrir a janela principal. Conecte as câmeras e abra controles, gravações ou visualizações ampliadas pelo app principal. Passar o mouse não pede senha nem inicia conexão automaticamente.
 
 ## Controles da câmera
 
-Abra **⋯ → Controles da câmera…** no cartão ou pelo botão de controles no cinema, popup ou prévia da barra. As credenciais da transmissão ativa são reutilizadas em memória. Caso contrário, use **Autenticar…** com as credenciais locais; o Chaves continua sendo usado somente pelo fluxo de autenticação explícito.
+Abra **⋯ → Controles da câmera…** no cartão ou pelo botão de controles no cinema ou popup. As credenciais da transmissão ativa são reutilizadas em memória. Caso contrário, use **Autenticar…** com as credenciais locais; o Chaves continua sendo usado somente pelo fluxo de autenticação explícito.
 
 - **Movimento:** escolha o perfil informado pela câmera, use as setas para movimentos curtos e ajuste a velocidade. **Parar movimento** cancela e envia a parada. Zoom e posições salvas dependem do suporte do dispositivo. Movimento contínuo usa limite no dispositivo de até um segundo; posições salvas usam monitoramento com limite de 15 segundos e parada, pois o padrão ONVIF não fornece Timeout para essa operação.
 - **Imagem:** brilho, contraste, saturação, nitidez, exposição e visão noturna aparecem conforme opções e limites retornados. **Aplicar ajustes de imagem** grava e verifica por nova leitura. Trocar perfil ou recarregar pede confirmação antes de descartar edições.

@@ -2,7 +2,7 @@
 
 [Brazilian Portuguese guide](../README.pt-BR.md#gravações-do-cartão-sd).
 
-Open **⋯ → Recordings…** on a camera, or use the recordings action in enlarged views or the menu preview. One window is retained per camera. This feature reads/downloads existing camera files; it never deletes recordings, formats storage or changes recording settings.
+Open **⋯ → Recordings…** on a camera, or use the recordings action in enlarged views. One window is retained per camera. This feature reads/downloads existing camera files; it never deletes recordings, formats storage or changes recording settings.
 
 ## Browse by camera time
 
