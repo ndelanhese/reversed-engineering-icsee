@@ -1,0 +1,38 @@
+Reversed engineering Icsee for Android
+
+Original application source and icon: MIT license.
+https://github.com/ndelanhese/reversed-engineering-icsee
+
+This independent application does not embed the iCSee application, its SDK, or decompiled vendor source.
+
+LibVLC for Android 3.7.7 — VideoLAN and VLC authors.
+GNU Lesser General Public License, version 2.1 or later.
+https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+The full LGPL text is included as assets/LGPL-2.1.txt in this APK.
+
+Original library artifact (native binaries retained; unused Lua/HRTF assets omitted):
+https://repo.maven.apache.org/maven2/org/videolan/android/libvlc-all/3.7.7/
+
+Bindings/build scripts/patches:
+https://code.videolan.org/videolan/libvlcjni/-/tree/0b8dc65efb203c86a0476bc337ddd99ecf1c0ef6
+VLC base source (apply the bindings repository's libvlc/patches):
+https://code.videolan.org/videolan/vlc/-/tree/84177b2273abc5c4300234e6e18b55a4d2dd5a03
+The pinned VLC contrib recipes identify additional dependency sources and hashes.
+Source snapshots and instructions accompany Android release downloads.
+
+Kotlin standard library, AndroidX dependencies: Apache License 2.0.
+https://kotlinlang.org/
+https://android.googlesource.com/platform/frameworks/support/
+https://www.apache.org/licenses/LICENSE-2.0
+
+LLVM libc++ runtime (included by LibVLC): Apache License 2.0 with LLVM exception.
+https://llvm.org/LICENSE.txt
+
+Rust dependency license texts and their version/source index are included under
+assets/rust-licenses/ in release builds. The application's Rust native library is
+built from its own source; these dependencies remain under their stated licenses.
+
+You may modify and rebuild this application with a modified LibVLC library.
+Its source and Android build instructions are public. No anti-relinking restriction
+is imposed by the application. Your rebuilt APK uses your own signing certificate;
+Android then requires uninstalling a differently signed installed version first.

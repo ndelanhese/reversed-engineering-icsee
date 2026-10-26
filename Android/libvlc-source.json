@@ -1,0 +1,12 @@
+{
+  "version": "3.7.7",
+  "artifact": "org.videolan.android:libvlc-all:3.7.7",
+  "aar_sha256": "b48dab96e0e90e34cce3861963500c144a5aadb1b249d501d6a4b104d849e61b",
+  "bindings_repository": "https://code.videolan.org/videolan/libvlcjni.git",
+  "bindings_commit": "0b8dc65efb203c86a0476bc337ddd99ecf1c0ef6",
+  "engine_repository": "https://code.videolan.org/videolan/vlc.git",
+  "engine_base_commit": "84177b2273abc5c4300234e6e18b55a4d2dd5a03",
+  "patches": "libvlcjni/libvlc/patches",
+  "runtime_version": "3.0.25 Vetinari",
+  "runtime_changeset": "3.0.24-35-gc7e5d68ee5"
+}
