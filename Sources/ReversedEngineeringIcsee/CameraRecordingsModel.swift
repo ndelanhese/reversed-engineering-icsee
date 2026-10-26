@@ -263,7 +263,9 @@ final class CameraRecordingsModel {
                     self?.exportSession = session
                     session.outputURL = temporary; session.outputFileType = .mov
                     session.timeRange = CMTimeRange(start: CMTime(seconds: range.start, preferredTimescale: 600), end: CMTime(seconds: range.end, preferredTimescale: 600))
-                    await session.export()
+                    await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+                        session.exportAsynchronously { continuation.resume() }
+                    }
                     try Task.checkCancellation()
                     guard session.status == .completed else { throw RecordingPresentationError.exportFailed }
                     try await Self.publishFile(temporary, to: destination)

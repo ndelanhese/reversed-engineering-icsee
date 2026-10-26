@@ -132,7 +132,7 @@ Original app source and icon are MIT licensed. Licenses are included in the app 
 ## Scope
 
 Local RTSP video, native windows, menu bar preview, ONVIF camera controls, discovered vendor settings and local SD-card recordings.
-No live/two-way audio, Mac-side recording, SD playback or cloud login. Camera-side settings depend on firmware.
+No live/two-way audio, Mac-side live recording or cloud login. Camera-side settings and SD-card compatibility depend on firmware.
 [Camera controls and validation scope]({REPOSITORY}/blob/v{version}/docs/CAMERA_CONTROLS.md).
 [SD-card playback/export and validation scope]({REPOSITORY}/blob/v{version}/docs/RECORDINGS.md).
 Remote access requires an existing VPN. Compatibility is firmware-dependent; these builds do not certify every iCSee device.

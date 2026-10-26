@@ -32,7 +32,7 @@ Only keyframes carry whole-second camera timestamps. Intermediate frame timing i
 
 Exports use a native save panel. Interval preparation stays inside the private cache; publishing uses mode0600 staging and replaces a destination only after successful completion. The completed original remains exportable if native conversion fails. Switching recordings or closing the recordings window removes its temporary cache; user-selected exports survive.
 
-Live video remains independently active. Disconnect-all, relevant camera edits/removal and normal Quit cancel/reap recording work while preserving the existing control Stop/restart cleanup rules. Forced process termination may leave an OS-temporary directory; it is not a persistent recording library. Large clips are bounded by2GiB input, available disk space, media/frame/sample limits and processing deadlines. An encrypted/proprietary firmware stream may require an unsupported decoder; no vendor SDK or cloud fallback is embedded.
+Live video remains independently active. Disconnect-all, relevant camera edits/removal and normal Quit cancel/reap recording work while preserving the existing control Stop/restart cleanup rules. Forced process termination may leave an OS-temporary directory; it is not a persistent recording library. Raw downloads are limited to8GiB; native conversion accepts up to2GiB. Available disk space, media/frame/sample limits and processing deadlines also apply. An encrypted/proprietary firmware stream may require an unsupported decoder; no vendor SDK or cloud fallback is embedded.
 
 ## Protocol provenance
 

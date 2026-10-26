@@ -141,7 +141,7 @@ struct CameraRecordingsView: View {
         VStack(spacing: 8) {
             HStack {
                 Text(recordingDuration(model.position)).monospacedDigit()
-                Slider(value: Binding(get: { model.position }, set: model.seek), in: 0...max(0.01, model.duration))
+                Slider(value: Binding(get: { model.position }, set: { model.seek($0) }), in: 0...max(0.01, model.duration))
                     .accessibilityLabel("Recording position")
                 Text(recordingDuration(model.duration)).monospacedDigit()
             }.font(.caption).disabled(model.movie == nil)
@@ -151,7 +151,7 @@ struct CameraRecordingsView: View {
                 Button { model.togglePlayback() } label: { Image(systemName: "playpause.fill") }.help("Play or pause")
                 Button { model.jump(15) } label: { Image(systemName: "goforward.15") }.help("Forward 15 seconds")
                 Button { model.adjacent(1) } label: { Image(systemName: "forward.end.fill") }.help("Next recording")
-                Picker("Speed", selection: Binding(get: { model.playbackRate }, set: model.setRate)) {
+                Picker("Speed", selection: Binding(get: { model.playbackRate }, set: { model.setRate($0) })) {
                     Text("0.5×").tag(Float(0.5)); Text("1×").tag(Float(1)); Text("2×").tag(Float(2)); Text("4×").tag(Float(4))
                 }.frame(width: 130)
                 Spacer()
