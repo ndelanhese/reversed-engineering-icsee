@@ -23,9 +23,9 @@ import SwiftUI
         first.close()
         try? await Task.sleep(for: .milliseconds(400))
         guard !first.isVisible, menu.statusItem != nil, session.state == .live else { fail("closing main scene lost background menu/stream", lifecycle) }
-        menu.openMainWindow()
+        _ = lifecycle.applicationShouldHandleReopen(NSApp, hasVisibleWindows: false)
         try? await Task.sleep(for: .milliseconds(600))
-        guard NSApp.windows.contains(where: { $0.title == "Menu bar scene QA" && $0.isVisible }), lifecycle.menuBar === menu, session.state == .live else { fail("Open app did not reopen real SwiftUI main scene", lifecycle) }
+        guard NSApp.windows.contains(where: { $0.title == "Menu bar scene QA" && $0.isVisible }), lifecycle.menuBar === menu, session.state == .live else { fail("Dock reopen did not reopen real SwiftUI main scene", lifecycle) }
         defaults.removePersistentDomain(forName: suite)
         print("PASS: production main-window integration stays in menu bar and reopens its SwiftUI scene")
         NSApp.terminate(nil)

@@ -118,19 +118,19 @@ Do not forward camera ports to the public internet. Local RTSP is not an encrypt
 | SD-card history / playback / export | Camera menu **⋯ → Recordings…** |
 | Close popup | Native close button or `Command + W` |
 
-Closing a popup keeps the shared stream alive. Closing the main window keeps the app and active cameras running in the menu bar. Use **Quit** in the preview or `Command + Q` to stop all streams and exit.
+Closing a popup keeps the shared stream alive. Closing the main window keeps the app and active cameras running in the menu bar. Use `Command + Q` to stop all streams and exit.
 
 ## Menu bar preview
 
-Hover over the lens icon in the macOS menu bar to see the selected camera. Move into the panel to use its controls; leaving both the icon and panel dismisses the hover preview. Click the icon to keep the panel open, then click again or click outside to dismiss it.
+Hover over the lens icon in the macOS menu bar to see the selected camera. The panel contains only the camera selector and video; leaving both the icon and panel dismisses the hover preview. Click the icon to keep the panel open, then click again or click outside to dismiss it.
 
 Choose **Preview camera** in the panel, or **⋯ → Use for menu bar preview** on a camera card. This default is saved between launches. Renaming preserves the choice; deleting the selected camera falls back to another saved camera.
 
-The preview shares the existing video connection with the grid and floating windows. If disconnected, click **Connect** to enter or load saved credentials. Hovering never prompts for credentials or automatically starts a connection. **Open app** reopens the main window; **Floating window** opens a larger camera view.
+The preview shares the existing video connection with the grid and floating windows. Click the app’s Dock icon to reopen the main window. Connect cameras and open controls, recordings or enlarged views from the main app. Hovering never prompts for credentials or automatically starts a connection.
 
 ## Camera controls
 
-Open **⋯ → Camera controls…** on a camera, or use the controls button in cinema/floating views or the menu bar preview. Active video credentials are reused in memory; otherwise use **Authenticate…**. The window provides supported PTZ/preset controls, image options and discovered local device settings. Changes are explicit and verified; unsupported or forbidden operations remain visible.
+Open **⋯ → Camera controls…** on a camera, or use the controls button in cinema/floating views. Active video credentials are reused in memory; otherwise use **Authenticate…**. The window provides supported PTZ/preset controls, image options and discovered local device settings. Changes are explicit and verified; unsupported or forbidden operations remain visible.
 
 See the [camera control guide](docs/CAMERA_CONTROLS.md) for profiles, ports, movement limits, advanced fields, restart behavior and validation scope. Cloud/phone features remain separate.
 

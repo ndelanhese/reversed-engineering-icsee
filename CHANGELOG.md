@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.1 — 2026-10-26
+
+- Focus the menu bar preview on its camera selector and larger video; remove action rows, status text and the footer.
+
 ## 0.6.0 — 2026-10-26
 
 - Add local SD-card calendar, camera-time daily history, channel/stream selection and a recording timeline.

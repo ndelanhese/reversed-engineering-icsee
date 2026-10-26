@@ -59,9 +59,9 @@ Direct `swiftc` builds avoided an incompatible Swift Package Manager `PackageDes
 
 ## Menu bar lifecycle
 
-An app-owned `CameraAppLifecycle` installs one `NSStatusItem` and `NSPopover` after the main SwiftUI scene appears. Native tracking opens the preview after a short hover and allows pointer handoff into the panel. Clicks pin it for menus and explicit authentication. No hover path touches Keychain or starts FFmpeg. The chosen camera UUID is a separate preferences key; camera profile encoding and credential service identifiers stay unchanged.
+An app-owned `CameraAppLifecycle` installs one `NSStatusItem` and `NSPopover` after the main SwiftUI scene appears. Native tracking opens the preview after a short hover and allows pointer handoff into the panel. Clicks pin the preview while selecting a camera. The panel contains only the selector and video. No hover path touches Keychain or starts FFmpeg. The chosen camera UUID is a separate preferences key; camera profile encoding and credential service identifiers stay unchanged.
 
-The popover observes the same store and session as the other views. `OpenWindowAction` from the production main-window view can reopen the closed scene. Explicit Quit removes tracking/monitor resources and cancels pending hover work before stopping sessions. Interactive fixtures cover native popover behavior and closing/reopening the actual SwiftUI scene without camera connections.
+The popover observes the same store and session as the other views. The Dock reopen delegate routes to the production main-window `OpenWindowAction` to reopen the closed scene. Explicit Quit removes tracking/monitor resources and cancels pending hover work before stopping sessions. Interactive fixtures cover native popover behavior and closing/reopening the actual SwiftUI scene without camera connections.
 
 ## Camera control connections
 
