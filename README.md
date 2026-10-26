@@ -6,6 +6,8 @@
 
 [Português brasileiro](README.pt-BR.md) · [How it was reverse engineered](docs/REVERSE_ENGINEERING.md) · [Contributing](CONTRIBUTING.md)
 
+**Android preview:** a separate native Rust/Kotlin companion is available as an alpha APK. See [Android installation, features and validation limits](Android/README.md).
+
 [![CI](https://github.com/ndelanhese/reversed-engineering-icsee/actions/workflows/ci.yml/badge.svg)](https://github.com/ndelanhese/reversed-engineering-icsee/actions/workflows/ci.yml)
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 

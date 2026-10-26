@@ -5,3 +5,13 @@ updates:
     schedule:
       interval: monthly
     open-pull-requests-limit: 3
+  - package-ecosystem: cargo
+    directory: /Android/native
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+  - package-ecosystem: gradle
+    directory: /Android
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
