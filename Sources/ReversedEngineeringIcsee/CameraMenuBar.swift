@@ -9,6 +9,7 @@ final class CameraAppLifecycle: NSObject, NSApplicationDelegate {
     private var terminationPending = false
     func configure(store: CameraStore, windows: CameraWindows, openMain: @escaping () -> Void) {
         guard menuBar == nil else { return }
+        RecordingPrivateDirectory.removeOrphans()
         self.store = store
         self.windows = windows
         let menu = CameraMenuBar(store: store, windows: windows, openMain: openMain)
@@ -137,6 +138,7 @@ final class CameraMenuBar: NSObject, NSPopoverDelegate {
     func openMainWindow() { popover.close(); NSApp.activate(); openMain() }
     func openPopup(_ camera: Camera) { popover.close(); windows.open(camera: camera, store: store) }
     func openControls(_ camera: Camera) { popover.close(); windows.openControls(camera: camera, store: store) }
+    func openRecordings(_ camera: Camera) { popover.close(); windows.openRecordings(camera: camera, store: store) }
     func popoverDidClose(_ notification: Notification) {
         pinned = false; overPreview = false
         closeTask?.cancel()
@@ -186,6 +188,8 @@ private struct CameraMenuBarPreview: View {
                     Button("Floating window", systemImage: "rectangle.on.rectangle") { menuBar.openPopup(camera) }
                 }.controlSize(.small)
                 Button("Camera controls…", systemImage: "slider.horizontal.3") { menuBar.openControls(camera) }
+                    .controlSize(.small)
+                Button("Recordings…", systemImage: "clock.arrow.circlepath") { menuBar.openRecordings(camera) }
                     .controlSize(.small)
             } else {
                 ContentUnavailableView("No cameras", systemImage: "video", description: Text("Add an address and credentials to get started."))

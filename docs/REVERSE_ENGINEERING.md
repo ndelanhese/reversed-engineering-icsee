@@ -73,6 +73,7 @@ The public-repository preparation additionally used focused privacy/security rev
 | Parser and encoding behavior is repeatable | Synthetic tests in `Tests/CoreSelfTest.swift` |
 | Popup/fullscreen share the camera session | Local native lifecycle tests; desktop tests are separate from CI |
 | Native PTZ and image controls | ONVIF implementation; bounded command/Stop acknowledgements and brightness write/readback/restoration on two cameras; other physical features firmware-dependent |
+| Local SD-card history/playback/export | REA local-record manager/date-search evidence plus pinned vendor/independent DVRIP facts; native client/media/window tests use synthetic recordings; firmware compatibility remains device-specific. See [recording evidence and scope](RECORDINGS.md). |
 | Vendor device settings | DVRIP implementation and synthetic transaction/lifecycle verification; all firmware fields not exhaustively certified |
 | Cloud/P2P, live audio and SD playback work | **Not established and not implemented** |
 | Full vendor protocol or SDK was recovered | **Not claimed** |

@@ -24,10 +24,11 @@ It is a small, unofficial interoperability project. It does not embed the Androi
 - Connection diagnostics and a watchdog that stops showing frozen video as live.
 - Native PTZ nudges, Stop, device presets and image controls based on camera-provided profiles/options.
 - Discovered local vendor settings with structured editing, conflict checks and verified readback.
+- Local SD-card calendar/history, native recorded-video playback, seeking/speed and original/movie/interval export. See the [recordings guide](docs/RECORDINGS.md).
 
 The interface follows your macOS preferred app language: **English or Brazilian Portuguese**, with English as the development-language fallback when no preferred supported language matches. macOS per-app language preferences are respected. Quit and reopen the app after changing its language in **System Settings → General → Language & Region → Applications**. User-entered camera names are preserved.
 
-Video output is scaled to 1280 pixels wide and capped at 15 fps. Live/two-way audio, Mac-side recording, SD-card playback, cloud-account login and vendor P2P are not implemented. Camera-side recording/audio settings can be available through device controls. Remote viewing requires an already configured VPN into your home network; Reversed engineering Icsee does not configure one.
+Live video output is scaled to 1280 pixels wide and capped at 15 fps. Recorded video uses a separate native player at its stored resolution/cadence. Live/two-way audio, Mac-side live recording, cloud-account login and vendor P2P are not implemented. Camera-side recording/audio settings can be available through device controls. Remote viewing requires an already configured VPN into your home network; Reversed engineering Icsee does not configure one.
 
 ## Download and install
 
@@ -114,6 +115,7 @@ Do not forward camera ports to the public internet. Local RTSP is not an encrypt
 | Exit fullscreen | `Esc` |
 | Toggle focused window fullscreen | `Control + Command + F` |
 | Rename / edit connection | Camera menu **⋯** |
+| SD-card history / playback / export | Camera menu **⋯ → Recordings…** |
 | Close popup | Native close button or `Command + W` |
 
 Closing a popup keeps the shared stream alive. Closing the main window keeps the app and active cameras running in the menu bar. Use **Quit** in the preview or `Command + Q` to stop all streams and exit.
