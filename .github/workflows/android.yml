@@ -39,6 +39,7 @@ jobs:
           unzip -q "$RUNNER_TEMP/android-tools.zip" -d "$RUNNER_TEMP/android-tools"
           mv "$RUNNER_TEMP/android-tools/cmdline-tools" "$RUNNER_TEMP/android-sdk/cmdline-tools/latest"
           echo "ANDROID_HOME=$RUNNER_TEMP/android-sdk" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$RUNNER_TEMP/android-sdk" >> "$GITHUB_ENV"
           echo "$RUNNER_TEMP/android-sdk/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
           export ANDROID_HOME="$RUNNER_TEMP/android-sdk"
           { yes || true; } | "$ANDROID_HOME/cmdline-tools/latest/bin/android" --no-metrics sdk install 'platforms;android-37.0' 'build-tools;37.0.0' 'ndk;29.0.14206865'
