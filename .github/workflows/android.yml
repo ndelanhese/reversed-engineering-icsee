@@ -33,7 +33,15 @@ jobs:
           java-version: '21'
       - name: Install Android build packages
         run: |
-          sdkmanager 'platforms;android-37.0' 'build-tools;37.0.0' 'ndk;29.0.14206865'
+          mkdir -p "$RUNNER_TEMP/android-sdk/cmdline-tools"
+          curl --fail --location --retry 3 --output "$RUNNER_TEMP/android-tools.zip" https://dl.google.com/android/repository/commandlinetools-linux-16111833_latest.zip
+          echo "0877a1d048fe4a24efe2eff536ca4223f7adeb58648bb81909d33c446918cfa8  $RUNNER_TEMP/android-tools.zip" | sha256sum --check
+          unzip -q "$RUNNER_TEMP/android-tools.zip" -d "$RUNNER_TEMP/android-tools"
+          mv "$RUNNER_TEMP/android-tools/cmdline-tools" "$RUNNER_TEMP/android-sdk/cmdline-tools/latest"
+          echo "ANDROID_HOME=$RUNNER_TEMP/android-sdk" >> "$GITHUB_ENV"
+          echo "$RUNNER_TEMP/android-sdk/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+          export ANDROID_HOME="$RUNNER_TEMP/android-sdk"
+          { yes || true; } | "$ANDROID_HOME/cmdline-tools/latest/bin/android" --no-metrics sdk install 'platforms;android-37.0' 'build-tools;37.0.0' 'ndk;29.0.14206865'
       - name: Pinned Rust toolchain
         run: rustup toolchain install 1.97.0 --profile minimal --component rustfmt --component clippy --target aarch64-linux-android --target x86_64-linux-android
       - name: Rust formatting and lint

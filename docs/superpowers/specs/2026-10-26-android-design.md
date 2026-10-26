@@ -18,7 +18,7 @@ The owner approved Rust protocol code, a native Kotlin interface and LibVLC play
 
 `Android/app` owns native Android views, camera storage, encrypted credential blobs using AES-GCM keys in Android Keystore, lifecycle, document pickers and video surfaces. UI actions have generation guards. Stale worker completions may delete their own temporary work, never update a new screen. PTZ uses device-side timeout and best-effort Stop on cancellation. Settings writes are not automatically retried.
 
-JNI input/output is bounded JSON with fixed safe error messages; credentials are never returned in operation results. Rust panic boundaries never unwind into the JVM. Dependencies and Gradle downloads are pinned; native libraries must pass 16-KiB ELF/ZIP alignment checks. APKs are verified with Android build tools. Build tooling JDK/SDK/NDK is not a Java runtime bundled with the app; no application Java source is planned.
+JNI input/output is bounded JSON with fixed safe error messages. Control/query results do not echo credentials; the RTSP helper returns an authenticated URI only in memory to the video renderer. Rust panic boundaries never unwind into the JVM. Dependencies and Gradle downloads are pinned; native libraries must pass 16-KiB ELF/ZIP alignment checks. APKs are verified with Android build tools. Build tooling JDK/SDK/NDK is not a Java runtime bundled with the app; no application Java source is planned.
 
 ## Validation and release
 

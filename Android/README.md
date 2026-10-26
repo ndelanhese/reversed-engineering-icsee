@@ -14,6 +14,8 @@ The first Android build is **0.1.0-alpha.1**. Download its signed `.apk` from th
 - Android 17 requires local-network permission; grant it when connecting. Firmware and the phone's video decoder determine compatibility.
 - Android release certificate SHA-256: `c52e6545c9064b8da5389d3c410d15f3f2e36f69c3f9c360974aeb1a700c297f`. Updates signed with this same certificate retain app data. The vendor app's identity or extraction keystore is never reused.
 
+If Android specifically blocks this preview for **developer identity verification**, it is not registered in Google's developer registry. Google's [official advanced flow and developer ADB installation](https://developer.android.com/developer-verification/guides) are available for unregistered apps. With an authorized device selected, the developer installation command is `adb -s DEVICE_SERIAL install -r reversed-engineering-icsee-android-0.1.0-alpha.1.apk`. The package's signing certificate and Google's developer-identity registration are separate checks.
+
 ## Features and limits
 
 Camera profiles support adding, editing, renaming and removal. Live cards and enlarged views use native video surfaces, with no JPEG transcoding. Offscreen cards and paused activities release their players; there is no background camera service. App memory and decoding still cost resources while visible. Android RAM/CPU has not been measured on the owner's phone; macOS measurements are not Android measurements.
