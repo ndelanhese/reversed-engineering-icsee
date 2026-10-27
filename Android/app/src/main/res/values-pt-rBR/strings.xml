@@ -112,4 +112,14 @@
     <string name="group_network">Rede</string>
     <string name="group_privacy">Horário e privacidade</string>
     <string name="group_movement">Ajustes de movimento</string>
+    <string name="find_cameras">Encontrar câmeras</string>
+    <string name="discovery_intro">Encontre câmeras no mesmo Wi-Fi ou rede Ethernet. As credenciais serão solicitadas ao conectar.</string>
+    <string name="discovery_scanning">Buscando na rede local…</string>
+    <string name="discovery_empty">Nenhuma câmera encontrada. Confira o Wi-Fi e a alimentação das câmeras; busque novamente ou adicione um endereço manualmente. Redes de visitantes podem bloquear a descoberta.</string>
+    <string name="discovery_no_network">Conecte ao mesmo Wi-Fi ou rede Ethernet das câmeras e busque novamente.</string>
+    <string name="search_again">Buscar novamente</string>
+    <string name="already_added">Já adicionada</string>
+    <string name="add_manually">Adicionar manualmente</string>
+    <string name="advanced">Ajustes avançados</string>
+    <string name="discovery_defaults">Endereço ONVIF detectado. As portas RTSP e de controle usam os padrões iCSee; altere em Ajustes avançados se necessário.</string>
 </resources>

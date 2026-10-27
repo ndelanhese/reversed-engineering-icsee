@@ -1,6 +1,6 @@
 use crate::{
     core::{self, Result},
-    media, onvif, recordings,
+    discovery, media, onvif, recordings,
     wire::{self, Session},
 };
 use serde_json::{json, Value};
@@ -18,6 +18,7 @@ pub fn dispatch(v: &Value, cancel: Arc<AtomicBool>) -> Result<Value> {
         "settings_catalog" => {
             serde_json::from_str(include_str!("settings.json")).map_err(|_| "internal".into())
         }
+        "discover" => discovery::operation(v, cancel),
         "recordings" => recordings::listing(v, cancel),
         "calendar" => recordings::calendar(v, cancel),
         "download" => recordings::download(v, cancel),

@@ -39,6 +39,8 @@ class MainActivity : Activity() {
     var pickingExport = false
     var exportResult: ((android.net.Uri?) -> Unit)? = null
     private var pendingNetworkAction: (() -> Unit)? = null
+    private var grantedNetworkAction: (() -> Unit)? = null
+    private var resumed = false
     private var started = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,9 +49,12 @@ class MainActivity : Activity() {
         profiles = storage.load()
         navigate(DashboardScreen(this))
     }
-    override fun onResume() { super.onResume(); if (started) screen?.resume(); started = true }
-    override fun onPause() { screen?.pause(); super.onPause() }
-    override fun onDestroy() { screen?.close(); credentials.clear(); if (vlcInitialized) vlc.release(); super.onDestroy() }
+    override fun onResume() {
+        super.onResume(); if (started) screen?.resume(); started = true; resumed = true
+        val action = grantedNetworkAction; grantedNetworkAction = null; action?.invoke()
+    }
+    override fun onPause() { resumed = false; screen?.pause(); super.onPause() }
+    override fun onDestroy() { pendingNetworkAction = null; grantedNetworkAction = null; screen?.close(); credentials.clear(); if (vlcInitialized) vlc.release(); super.onDestroy() }
     private var vlcInitialized = false
     fun video(): VideoPane { vlcInitialized = true; return VideoPane(this, vlc) }
     override fun onConfigurationChanged(newConfig: Configuration) { super.onConfigurationChanged(newConfig); window.decorView.requestLayout() }
@@ -62,13 +67,20 @@ class MainActivity : Activity() {
     }
     fun network(action: () -> Unit) {
         if (Build.VERSION.SDK_INT >= 37 && checkSelfPermission("android.permission.ACCESS_LOCAL_NETWORK") != PackageManager.PERMISSION_GRANTED) {
-            pendingNetworkAction = action
+            val requestingScreen = screen
+            pendingNetworkAction = { if (screen === requestingScreen) action() }
             requestPermissions(arrayOf("android.permission.ACCESS_LOCAL_NETWORK"), 100)
         } else action()
     }
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 100) { val action = pendingNetworkAction; pendingNetworkAction = null; if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) action?.invoke() else message(getString(R.string.permission_denied)) }
+        if (requestCode == 100) {
+            val action = pendingNetworkAction; pendingNetworkAction = null
+            if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) {
+                // Android can deliver permission results before resuming the screen and its scope.
+                if (resumed) action?.invoke() else grantedNetworkAction = action
+            } else { grantedNetworkAction = null; message(getString(R.string.permission_denied)) }
+        }
     }
     fun authenticate(camera: CameraProfile, force: Boolean = false, action: (Credentials) -> Unit) = network {
         if (!force) {
@@ -89,14 +101,19 @@ class MainActivity : Activity() {
         } }
         dialog.show()
     }
-    fun editCamera(old: CameraProfile? = null) {
-        val form = column(); val name = edit(form, R.string.camera_name, old?.name ?: "")
-        val host = edit(form, R.string.address, old?.host ?: "")
-        val port = edit(form, R.string.rtsp_port, (old?.port ?: 554).toString(), number = true)
-        val control = edit(form, R.string.control_port, (old?.controlPort ?: 34567).toString(), number = true)
-        val onvif = edit(form, R.string.onvif_port, (old?.onvifPort ?: 8899).toString(), number = true)
-        val channel = edit(form, R.string.channel, (old?.channel ?: 1).toString(), number = true)
-        val sub = CheckBox(this).apply { setText(R.string.substream); isChecked = old?.substream ?: true; form.addView(this) }
+    fun editCamera(old: CameraProfile? = null, discovered: CameraProfile? = null) {
+        val initial = old ?: discovered
+        val form = column(); val name = edit(form, R.string.camera_name, initial?.name ?: "")
+        val host = edit(form, R.string.address, initial?.host ?: "")
+        val advanced = column().apply { visibility = View.GONE }
+        CheckBox(this).apply { setText(R.string.advanced); setOnCheckedChangeListener { _, checked -> advanced.visibility = if (checked) View.VISIBLE else View.GONE }; form.addView(this) }
+        form.addView(advanced)
+        val port = edit(advanced, R.string.rtsp_port, (initial?.port ?: 554).toString(), number = true)
+        val control = edit(advanced, R.string.control_port, (initial?.controlPort ?: 34567).toString(), number = true)
+        val onvif = edit(advanced, R.string.onvif_port, (initial?.onvifPort ?: 8899).toString(), number = true)
+        val channel = edit(advanced, R.string.channel, (initial?.channel ?: 1).toString(), number = true)
+        val sub = CheckBox(this).apply { setText(R.string.substream); isChecked = initial?.substream ?: true; advanced.addView(this) }
+        if (discovered != null) text(form, getString(R.string.discovery_defaults), 13f)
         val scroll = ScrollView(this).apply { addView(form) }
         val dialog = AlertDialog.Builder(this).setTitle(if (old == null) R.string.add_camera else R.string.edit).setView(scroll).setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.save, null).create()
         dialog.setOnShowListener { dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
@@ -153,6 +170,7 @@ class DashboardScreen(app: MainActivity) : CameraScreen(app) {
         videos.forEach { it.close() }; videos.clear()
         val root = app.frame(app.getString(R.string.cameras), false)
         app.text(root, app.getString(R.string.intro))
+        app.button(root, R.string.find_cameras) { app.navigate(DiscoveryScreen(app)) }
         app.button(root, R.string.add_camera) { app.editCamera() }
         app.button(root, R.string.about) {
             val content = app.column()

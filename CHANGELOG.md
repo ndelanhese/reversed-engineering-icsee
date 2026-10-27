@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.0 / Android 0.1.0-alpha.2
+
+- Find local ONVIF cameras from macOS and Android; select a result to fill its address and ONVIF service automatically. Manual and advanced setup remain available.
+- Keep discovery cancellable and inactive in the background; validate bounded network replies without sending credentials.
+- Stop unresponsive Android RTSP players outside the UI thread so connection timeouts and Stop remain responsive.
+
+
 ## 0.6.2 — 2026-10-26
 
 - Pause live decoding and release frames when all camera viewers are closed, minimized, fully covered or hidden, and during system sleep. Resume visible viewers using their in-memory authenticated session; explicit Stop stays stopped.

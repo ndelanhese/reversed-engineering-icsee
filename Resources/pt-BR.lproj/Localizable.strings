@@ -304,3 +304,15 @@
 
 "Paused while hidden" = "Pausada enquanto oculta";
 "Hardware video decoding is unavailable." = "A decodificação de vídeo por hardware está indisponível.";
+
+/* Local camera discovery */
+"Find cameras" = "Buscar câmeras";
+"Searching…" = "Buscando…";
+"Cancel search" = "Cancelar busca";
+"Search this network for ONVIF cameras. No login is sent. The search takes about five seconds." = "Busque câmeras ONVIF nesta rede. Nenhum login é enviado. A busca leva cerca de cinco segundos.";
+"No cameras found. Check that ONVIF is enabled and both devices are on the same network, or use manual setup." = "Nenhuma câmera encontrada. Confira se o ONVIF está ativado e os dispositivos estão na mesma rede, ou use a configuração manual.";
+"Address and ONVIF port are filled in. RTSP and device control use standard ports; change them in advanced settings if needed. Save, then connect with the camera's local login." = "O endereço e a porta ONVIF foram preenchidos. RTSP e controle do dispositivo usam as portas padrão; altere-as nos ajustes avançados se necessário. Salve e depois conecte com o login local da câmera.";
+"Manual setup and advanced" = "Configuração manual e avançada";
+"Address" = "Endereço";
+"ONVIF service path" = "Caminho do serviço ONVIF";
+"Could not search the local network. Check your connection and Local Network permission in System Settings." = "Não foi possível buscar na rede local. Confira a conexão e a permissão de Rede Local nos Ajustes do Sistema.";

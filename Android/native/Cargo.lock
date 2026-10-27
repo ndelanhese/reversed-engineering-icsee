@@ -225,6 +225,7 @@ dependencies = [
  "chrono",
  "getrandom",
  "jni",
+ "libc",
  "md5",
  "serde",
  "serde_json",

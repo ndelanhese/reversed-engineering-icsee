@@ -15,6 +15,8 @@ import org.videolan.libvlc.Media
 import org.videolan.libvlc.MediaPlayer
 import org.videolan.libvlc.util.VLCVideoLayout
 import java.io.File
+import java.util.concurrent.Executors
+import java.util.concurrent.Semaphore
 
 class VideoPane(context: Context, private val vlc: LibVLC) : FrameLayout(context), AutoCloseable {
     private val video = VLCVideoLayout(context)
@@ -53,36 +55,51 @@ class VideoPane(context: Context, private val vlc: LibVLC) : FrameLayout(context
     fun movie(file: File, failed: () -> Unit) { intentToPlay = true; start(Uri.fromFile(file), false, failed) }
     private fun start(uri: Uri, live: Boolean, failed: () -> Unit) {
         releasePlayer()
+        if (!playerSlots.tryAcquire()) {
+            status.visibility = VISIBLE; status.text = context.getString(R.string.error_busy)
+            if (!live) failed()
+            return
+        }
         status.visibility = VISIBLE; status.text = context.getString(R.string.connecting)
-        val next = MediaPlayer(vlc)
+        val next = try { MediaPlayer(vlc) } catch (error: Throwable) { playerSlots.release(); throw error }
         player = next
-        next.attachViews(video, null, false, false)
-        var reachedVideo = false
-        next.setEventListener { event ->
-            if (!retired && player === next) when (event.type) {
-                MediaPlayer.Event.Playing -> { if (!live) { reachedVideo = true; status.visibility = GONE } }
-                MediaPlayer.Event.EncounteredError -> { releasePlayer(); status.visibility = VISIBLE; status.text = context.getString(R.string.error_disconnected); if (!live || !reachedVideo) failed() }
-                MediaPlayer.Event.EndReached -> { if (live) { status.visibility = VISIBLE; status.text = context.getString(R.string.error_disconnected) } }
-            }
-        }
-        val media = Media(vlc, uri).apply {
-            setHWDecoderEnabled(true, false)
-            if (live) { addOption(":rtsp-tcp"); addOption(":network-caching=300"); addOption(":no-audio") }
-        }
-        next.media = media; media.release(); next.play()
-        if (live) {
-            val began = SystemClock.elapsedRealtime(); var lastFrame: Long? = null; var previousFrames = 0
-            watchdog = object : Runnable {
-                override fun run() {
-                    if (retired || player !== next) return
-                    val now = SystemClock.elapsedRealtime(); val frames = decodedFrames
-                    if (frames > previousFrames) { previousFrames = frames; lastFrame = now; reachedVideo = true; status.visibility = GONE }
-                    if (lastFrame?.let { now - it > 12000 } ?: (now - began > 20000)) {
-                        releasePlayer(); status.visibility = VISIBLE; status.text = context.getString(R.string.error_timeout)
-                        if (!reachedVideo) failed()
-                    } else timer.postDelayed(this, 1000)
+        try {
+            next.attachViews(video, null, false, false)
+            var reachedVideo = false
+            next.setEventListener { event ->
+                if (!retired && player === next) when (event.type) {
+                    MediaPlayer.Event.Playing -> { if (!live) { reachedVideo = true; status.visibility = GONE } }
+                    MediaPlayer.Event.EncounteredError -> { releasePlayer(); status.visibility = VISIBLE; status.text = context.getString(R.string.error_disconnected); if (!live || !reachedVideo) failed() }
+                    MediaPlayer.Event.EndReached -> { if (live) { status.visibility = VISIBLE; status.text = context.getString(R.string.error_disconnected) } }
                 }
-            }.also { timer.postDelayed(it, 1000) }
+            }
+            val media = Media(vlc, uri)
+            try {
+                media.apply {
+                    setHWDecoderEnabled(true, false)
+                    if (live) { addOption(":rtsp-tcp"); addOption(":network-caching=300"); addOption(":no-audio") }
+                }
+                next.media = media
+            } finally { media.release() }
+            next.play()
+            if (live) {
+                val began = SystemClock.elapsedRealtime(); var lastFrame: Long? = null; var previousFrames = 0
+                watchdog = object : Runnable {
+                    override fun run() {
+                        if (retired || player !== next) return
+                        val now = SystemClock.elapsedRealtime(); val frames = decodedFrames
+                        if (frames > previousFrames) { previousFrames = frames; lastFrame = now; reachedVideo = true; status.visibility = GONE }
+                        if (lastFrame?.let { now - it > 12000 } ?: (now - began > 20000)) {
+                            releasePlayer(); status.visibility = VISIBLE; status.text = context.getString(R.string.error_timeout)
+                            if (!reachedVideo) failed()
+                        } else timer.postDelayed(this, 1000)
+                    }
+                }.also { timer.postDelayed(it, 1000) }
+            }
+        } catch (error: RuntimeException) {
+            releasePlayer()
+            status.visibility = VISIBLE; status.text = context.getString(R.string.error_invalid_media)
+            failed()
         }
     }
     fun seek(ms: Long) { player?.time = ms.coerceIn(0, durationMs.coerceAtLeast(0)) }
@@ -91,9 +108,24 @@ class VideoPane(context: Context, private val vlc: LibVLC) : FrameLayout(context
     fun suspendLive() { intentToPlay = false; scope.close(); scope = WorkScope(); releasePlayer(); status.visibility = VISIBLE; status.text = context.getString(R.string.disconnected) }
     private fun releasePlayer() {
         watchdog?.let { timer.removeCallbacks(it) }; watchdog = null
-        player?.let { p -> player = null; p.setEventListener(null); p.stop(); p.detachViews(); p.release() }
+        player?.let { p ->
+            player = null; p.setEventListener(null)
+            // Native RTSP stop can wait for a silent peer; surface changes stay on the UI thread.
+            try { p.detachViews() } finally {
+                cleanup.execute {
+                    try { p.stop() } finally {
+                        timer.post { try { p.release() } finally { playerSlots.release() } }
+                    }
+                }
+            }
+        }
     }
     override fun close() { retired = true; intentToPlay = false; scope.close(); releasePlayer() }
+    private companion object {
+        val cleanup = Executors.newFixedThreadPool(2)
+        // Bound active players and pending cleanup together if a native stop never returns.
+        val playerSlots = Semaphore(8)
+    }
 }
 
 fun errorMessage(context: Context, code: String): String {
