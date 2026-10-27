@@ -58,7 +58,7 @@ final class CameraControlModel {
     func discover() { connect(credentials: nil) }
     func authenticate(_ credentials: Credentials) { connect(credentials: credentials) }
     func update(camera: Camera) {
-        let changed = self.camera.host != camera.host || self.camera.onvifPort != camera.onvifPort || self.camera.controlPort != camera.controlPort || self.camera.channel != camera.channel
+        let changed = self.camera.host != camera.host || self.camera.onvifPort != camera.onvifPort || self.camera.onvifPath != camera.onvifPath || self.camera.controlPort != camera.controlPort || self.camera.channel != camera.channel
         self.camera = camera
         if changed { disconnect(); discover() }
     }
@@ -69,7 +69,7 @@ final class CameraControlModel {
         credentialsProvided = credentials != nil
         error = nil; onvifError = nil; deviceError = nil; notice = nil
         let stamp = generation
-        let client = ONVIFClient(host: camera.host, port: camera.onvifPort, username: credentials?.username, password: credentials?.password)
+        let client = ONVIFClient(host: camera.host, port: camera.onvifPort, servicePath: camera.onvifPath, username: credentials?.username, password: credentials?.password)
         onvif = client
         discovering = true
         discoveryTask = Task { [weak self] in

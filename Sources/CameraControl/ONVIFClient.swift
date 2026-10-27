@@ -140,6 +140,7 @@ private func onvifEscape(_ value: String) -> String {
 actor ONVIFClient {
     private let host: String
     private let port: Int
+    private let servicePath: String
     private let username: String?
     private let password: String?
     private let transport: ONVIFTransport
@@ -155,12 +156,14 @@ actor ONVIFClient {
     private var pendingMove: Task<ONVIFXMLNode, Error>?
     private var timedOutPresetGeneration: UInt64?
 
-    init(host: String, port: Int = 8899, username: String? = nil, password: String? = nil) {
+    init(host: String, port: Int = 8899, servicePath: String = "/onvif/device_service", username: String? = nil, password: String? = nil) {
         self.host = host; self.port = port; self.username = username; self.password = password
+        self.servicePath = servicePath
         transport = ONVIFHTTP.send
     }
-    init(host: String, port: Int = 8899, username: String? = nil, password: String? = nil, transport: @escaping ONVIFTransport) {
+    init(host: String, port: Int = 8899, servicePath: String = "/onvif/device_service", username: String? = nil, password: String? = nil, transport: @escaping ONVIFTransport) {
         self.host = host; self.port = port; self.username = username; self.password = password
+        self.servicePath = servicePath
         self.transport = transport
     }
 
@@ -397,9 +400,11 @@ actor ONVIFClient {
     private func number(_ value: Double) -> String { value == floor(value) ? String(Int(value)) : String(value) }
     private func safeURL(_ address: String? = nil) throws -> URL {
         guard !host.isEmpty, host.utf8.count <= 253, (1...65535).contains(port),
-              !host.contains(where: { $0.isWhitespace || "/@?#\\".contains($0) }), !host.hasPrefix("-") else { throw ONVIFError.invalidInput }
+              !host.contains(where: { $0.isWhitespace || "/@?#\\".contains($0) }), !host.hasPrefix("-"),
+              servicePath.hasPrefix("/"), !servicePath.hasPrefix("//"), servicePath.utf8.count <= 1024,
+              !servicePath.contains(where: { $0.isNewline || "?#\\".contains($0) }) else { throw ONVIFError.invalidInput }
         var components = URLComponents()
-        components.scheme = "http"; components.host = host; components.port = port; components.path = "/onvif/device_service"
+        components.scheme = "http"; components.host = host; components.port = port; components.path = servicePath
         guard let base = components.url else { throw ONVIFError.invalidInput }
         guard let address else { return base }
         guard let url = URL(string: address), let parsed = URLComponents(url: url, resolvingAgainstBaseURL: false),

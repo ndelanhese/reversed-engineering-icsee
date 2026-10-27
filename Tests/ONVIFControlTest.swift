@@ -63,6 +63,10 @@ private actor ONVIFWatchdogMock {
     }
 
     static func main() async throws {
+        let customPathMock = ONVIFMock([Reply(body: response("GetServices", service: "device"))])
+        let customPathClient = ONVIFClient(host: "192.0.2.10", servicePath: "/custom/device", transport: { try await customPathMock.send($0) })
+        try await expect(.unsupported) { _ = try await customPathClient.discover() }
+        try check(await customPathMock.allRequests().first?.url?.path == "/custom/device", "Discovered device service path used without changing origin")
         if let mode = CommandLine.arguments.dropFirst().first, mode.hasPrefix("--review-") {
             switch mode {
             case "--review-batch-imaging": try await batchImaging()

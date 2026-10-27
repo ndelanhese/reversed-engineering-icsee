@@ -304,3 +304,15 @@
 
 "Paused while hidden" = "Paused while hidden";
 "Hardware video decoding is unavailable." = "Hardware video decoding is unavailable.";
+
+/* Local camera discovery */
+"Find cameras" = "Find cameras";
+"Searching…" = "Searching…";
+"Cancel search" = "Cancel search";
+"Search this network for ONVIF cameras. No login is sent. The search takes about five seconds." = "Search this network for ONVIF cameras. No login is sent. The search takes about five seconds.";
+"No cameras found. Check that ONVIF is enabled and both devices are on the same network, or use manual setup." = "No cameras found. Check that ONVIF is enabled and both devices are on the same network, or use manual setup.";
+"Address and ONVIF port are filled in. RTSP and device control use standard ports; change them in advanced settings if needed. Save, then connect with the camera's local login." = "Address and ONVIF port are filled in. RTSP and device control use standard ports; change them in advanced settings if needed. Save, then connect with the camera's local login.";
+"Manual setup and advanced" = "Manual setup and advanced";
+"Address" = "Address";
+"ONVIF service path" = "ONVIF service path";
+"Could not search the local network. Check your connection and Local Network permission in System Settings." = "Could not search the local network. Check your connection and Local Network permission in System Settings.";

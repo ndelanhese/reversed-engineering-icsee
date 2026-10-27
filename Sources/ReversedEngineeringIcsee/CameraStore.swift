@@ -11,6 +11,7 @@ struct Camera: Identifiable, Codable, Equatable {
     var channel = 1
     var substream = false
     var onvifPort = 8899
+    var onvifPath = "/onvif/device_service"
     var controlPort = 34567
     var endpoint: CameraEndpoint {
         CameraEndpoint(host: host, port: port, channel: channel, substream: substream)
@@ -18,7 +19,7 @@ struct Camera: Identifiable, Codable, Equatable {
 }
 
 extension Camera {
-    enum CodingKeys: String, CodingKey { case id, name, host, port, channel, substream, onvifPort, controlPort }
+    enum CodingKeys: String, CodingKey { case id, name, host, port, channel, substream, onvifPort, onvifPath, controlPort }
     init(from decoder: any Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         id = try values.decode(UUID.self, forKey: .id)
@@ -28,7 +29,13 @@ extension Camera {
         channel = try values.decodeIfPresent(Int.self, forKey: .channel) ?? 1
         substream = try values.decodeIfPresent(Bool.self, forKey: .substream) ?? false
         onvifPort = try values.decodeIfPresent(Int.self, forKey: .onvifPort) ?? 8899
+        onvifPath = try values.decodeIfPresent(String.self, forKey: .onvifPath) ?? "/onvif/device_service"
         controlPort = try values.decodeIfPresent(Int.self, forKey: .controlPort) ?? 34567
+    }
+    mutating func apply(_ device: DiscoveredCamera) {
+        host = device.host
+        onvifPort = device.onvifPort
+        onvifPath = device.onvifPath
     }
 }
 

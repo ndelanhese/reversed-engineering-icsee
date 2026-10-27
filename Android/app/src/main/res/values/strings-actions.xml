@@ -112,4 +112,20 @@
     <string name="group_network">Network</string>
     <string name="group_privacy">Time and privacy</string>
     <string name="group_movement">Movement settings</string>
+    <string name="find_cameras">Find cameras</string>
+    <string name="discovery_intro">Find cameras on the same Wi-Fi or Ethernet network. Credentials are requested when you connect.</string>
+    <string name="discovery_scanning">Searching your local network…</string>
+    <string name="discovery_empty">No cameras found. Check Wi-Fi and camera power, then search again or add an address manually. Guest Wi-Fi may block discovery.</string>
+    <string name="discovery_no_network">Connect to the same Wi-Fi or Ethernet network as your cameras, then search again.</string>
+    <string name="search_again">Search again</string>
+    <string name="already_added">Already added</string>
+    <string name="add_manually">Add manually</string>
+    <string name="advanced">Advanced settings</string>
+    <string name="discovery_defaults">ONVIF address detected. RTSP and device-control ports use iCSee defaults; change them under Advanced settings if needed.</string>
+    <string name="empty_title">A clear view, close to home</string>
+    <string name="camera_details">Give your camera a name and enter its local network address.</string>
+    <string name="authentication_hint">Use the local account configured on your camera.</string>
+    <string name="discovery_results">Cameras on your network</string>
+    <string name="discovery_ready">Ready to search your network.</string>
+    <string name="discovery_add_hint">Choose a camera to review its address and add it.</string>
 </resources>

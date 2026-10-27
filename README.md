@@ -71,8 +71,10 @@ Packages land in `dist/release/`. See [release maintenance](docs/RELEASING.md) f
 
 ## Add your cameras
 
-1. Open **Add camera**. New installations start empty.
-2. Enter the camera's local IP/hostname, RTSP port (usually `554`) and channel (usually `1`). Find the address in your router's connected-device list or the camera's network settings.
+[Local discovery behavior and validation](docs/NETWORK_DISCOVERY.md).
+
+1. Open **Add camera → Find cameras**. New installations start empty.
+2. Select a discovered camera and choose its name. Address and ONVIF service are filled in; RTSP/control ports use standard iCSee defaults. **Manual setup and advanced** keeps custom addresses, ports and channels available.
 3. Click **Connect**, then enter the camera's **local device** username and password. These can differ from your iCSee cloud credentials.
 4. Enable **Save in macOS Keychain** only if you want to remember credentials.
 5. Try **Substream** if the main stream is too heavy or unsupported.

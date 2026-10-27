@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 
 /** Independent loopback camera peer: delays and partial pagination are intentional. */
-class DvripPeer(private val delayFirst: Boolean = false, private val partial: Boolean = false) : AutoCloseable {
+class DvripPeer(private val delayFirst: Boolean = false, private val partial: Boolean = false, private val calendarMask: Int = 1) : AutoCloseable {
     private val server = ServerSocket(0, 8, InetAddress.getByName("127.0.0.1"))
     private val running = AtomicBoolean(true)
     private val first = AtomicBoolean(true)
@@ -49,7 +49,7 @@ class DvripPeer(private val delayFirst: Boolean = false, private val partial: Bo
                     val date = body.getJSONObject("OPFileQuery").getString("EndTime").substring(0, 10)
                     JSONObject().put("Ret", if (partial) 111 else 110).put("OPFileQuery", JSONArray().put(JSONObject().put("FileName", "fixture.xm").put("BeginTime", "$date 00:00:00").put("EndTime", "$date 00:05:00").put("FileLength", 1)))
                 }
-                1446 -> JSONObject().put("Ret", 100).put("OPSCalendar", JSONObject().put("Mask", 1))
+                1446 -> JSONObject().put("Ret", 100).put("OPSCalendar", JSONObject().put("Mask", calendarMask))
                 else -> JSONObject().put("Ret", 100)
             }
             val payload = response.toString().toByteArray()

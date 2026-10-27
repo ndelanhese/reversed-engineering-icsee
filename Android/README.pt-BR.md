@@ -6,17 +6,17 @@ Versão Android nativa: protocolos em Rust, interface Kotlin e vídeo LibVLC. Co
 
 ## Instalar
 
-Baixe o APK assinado **0.1.0-alpha.1** na release de prévia Android do GitHub. Android 9 ou posterior, arm64/x86_64. Autorize instalação pelo navegador/gerenciador quando solicitado. Instala junto com o iCSee original.
+Baixe o APK assinado **0.1.0-alpha.5** na release de prévia Android do GitHub. Android 9 ou posterior, arm64/x86_64. Autorize instalação pelo navegador/gerenciador quando solicitado. Instala junto com o iCSee original.
 
-Adicione endereço local, portas e canal da câmera. Conecte com suas credenciais locais. A opção de lembrar senha usa criptografia AES-GCM com Android Keystore; backups e preenchimento automático desses campos ficam excluídos. Android 17 pede permissão de rede local.
+Toque **Encontrar câmeras** no mesmo Wi-Fi ou rede Ethernet. Selecione um resultado, escolha o nome e salve; endereço e porta ONVIF são preenchidos. Portas RTSP/controle usam os padrões iCSee. **Ajustes avançados** permite alterar portas/canal; cadastro manual continua disponível. Conecte com suas credenciais locais. A opção de lembrar senha usa criptografia AES-GCM com Android Keystore; backups e preenchimento automático desses campos ficam excluídos. Android 17 pede permissão de rede local.
 
-Se o Android bloquear especificamente por **verificação de identidade do desenvolvedor**, esta prévia ainda não foi registrada no cadastro do Google. O [fluxo avançado oficial ou instalação de desenvolvimento via ADB](https://developer.android.com/developer-verification/guides) permite instalar apps não registrados. Com seu aparelho autorizado/selecionado: `adb -s SERIAL_DO_APARELHO install -r reversed-engineering-icsee-android-0.1.0-alpha.1.apk`. Assinatura do APK e cadastro de identidade são verificações distintas.
+Se o Android bloquear especificamente por **verificação de identidade do desenvolvedor**, esta prévia ainda não foi registrada no cadastro do Google. O [fluxo avançado oficial ou instalação de desenvolvimento via ADB](https://developer.android.com/developer-verification/guides) permite instalar apps não registrados. Com seu aparelho autorizado/selecionado: `adb -s SERIAL_DO_APARELHO install -r reversed-engineering-icsee-android-0.1.0-alpha.5.apk`. Assinatura do APK e cadastro de identidade são verificações distintas.
 
 O menu **⋯** abre controles ou gravações. PTZ, posições e opções de imagem dependem do que a câmera anuncia. A descoberta de ajustes é somente leitura; alterações são explícitas, verificam conflitos e conferem os valores retornados. Formatação, exclusão de gravações e alterações de contas não fazem parte do app.
 
 Histórico usa horários da câmera. Escolha dia, linha do tempo ou horário; reprodução oferece busca, velocidade e exportação de original, MP4 ou intervalo. Primeiro baixa o trecho completo e valida o vídeo, portanto pode demorar. Reprodução usa cache privado e temporário, removido ao trocar trecho, sair, cancelar ou falhar. Somente exportação explícita pelo seletor de arquivos deixa cópia permanente. O seletor mantém temporariamente o trecho preparado enquanto você escolhe o destino. Falha do sistema/provedor durante exportação pode deixar incompleto um destino escolhido explicitamente.
 
-Vídeos fora da tela e app em segundo plano liberam players. Sem serviço permanente de câmera. Interface segue idioma Android: inglês/português brasileiro; nomes técnicos vêm do firmware. PiP, nuvem/P2P, atualização automática e transmissão em segundo plano ficam fora desta primeira versão.
+O áudio ao vivo fica silenciado, mantendo o canal RTSP ativo para câmeras que interrompem o vídeo quando ele é encerrado. A interface acompanha o tema claro ou escuro do Android. Vídeos fora da tela e app em segundo plano liberam players. Sem serviço permanente de câmera. Interface segue idioma Android: inglês/português brasileiro; nomes técnicos vêm do firmware. PiP, nuvem/P2P, atualização automática e transmissão em segundo plano ficam fora desta primeira versão.
 
 ## Compilar e testar
 

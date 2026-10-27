@@ -20,6 +20,12 @@ data class CameraProfile(
         .put("port", port).put("controlPort", controlPort).put("onvifPort", onvifPort)
         .put("channel", channel).put("substream", substream)
     companion object {
+        fun fromDiscovery(value: JSONObject): CameraProfile {
+            val camera = CameraProfile(name = value.getString("name"), host = value.getString("host"), port = value.getInt("port"), controlPort = value.getInt("controlPort"), onvifPort = value.getInt("onvifPort"), substream = true)
+            val octets = camera.host.split(".")
+            require(camera.valid() && octets.size == 4 && octets.all { it.toIntOrNull() in 0..255 })
+            return camera
+        }
         fun fromJson(value: JSONObject): CameraProfile = CameraProfile(
             id = value.getString("id"), name = value.getString("name"), host = value.getString("host"),
             port = value.optInt("port", 554), controlPort = value.optInt("controlPort", 34567),

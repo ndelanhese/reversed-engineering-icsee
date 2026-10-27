@@ -24,6 +24,24 @@ subprocess.run(['swiftc','-swift-version','6','-target','arm64-apple-macos14.0',
                 str(root/'Tests/CoreSelfTest.swift'),'-o',str(core_test)],check=True)
 subprocess.run([str(core_test)],check=True)
 
+discovery_test = build / 'camera-discovery'
+subprocess.run(['swiftc', '-swift-version', '6', '-target', 'arm64-apple-macos14.0', '-parse-as-library',
+                str(root/'Sources/CameraControl/CameraDiscovery.swift'), str(root/'Tests/DiscoveryTestSupport.swift'),
+                str(root/'Tests/CameraDiscoveryTest.swift'), '-o', str(discovery_test)], check=True)
+discovery_peer = subprocess.Popen([sys.executable, str(root/'Tests/DiscoveryFixtureServer.py')],
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+try:
+    if not select.select([discovery_peer.stdout], [], [], 10)[0]:
+        raise RuntimeError('Local discovery fixture did not start.')
+    discovery_port = json.loads(discovery_peer.stdout.readline())['port']
+    subprocess.run([str(discovery_test), str(discovery_port)], check=True, timeout=10)
+finally:
+    discovery_peer.terminate()
+    try:
+        discovery_peer.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        discovery_peer.kill(); discovery_peer.wait()
+
 def run_control_fixture(binary, arguments=(), server_arguments=(), timeout=25):
     server = subprocess.Popen([sys.executable, str(root/'Tests/ControlFixtureServer.py'), *server_arguments],
                               stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)

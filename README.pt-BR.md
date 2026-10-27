@@ -80,8 +80,8 @@ Pacotes ficam em `dist/release/`. Veja [manutenção de releases](docs/RELEASING
 
 ## Conectar
 
-1. Clique **Adicionar câmera**. Instalações novas começam vazias.
-2. Informe IP/hostname local, porta RTSP (geralmente `554`) e canal (geralmente `1`). Consulte os dispositivos conectados no roteador ou as configurações de rede da câmera.
+1. Clique **Adicionar câmera → Buscar câmeras**. Instalações novas começam vazias.
+2. Selecione uma câmera e escolha o nome. Endereço e serviço ONVIF são preenchidos; portas RTSP/controle usam os padrões iCSee. **Configuração manual e avançada** mantém endereços, portas e canais personalizados disponíveis.
 3. Clique **Conectar** e informe usuário/senha **locais da câmera**. Podem ser diferentes da conta iCSee.
 4. Marque **Salvar no Chaves** se quiser lembrar as credenciais.
 5. Tente **Fluxo leve** se o principal estiver pesado ou incompatível.
