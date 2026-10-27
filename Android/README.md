@@ -6,7 +6,7 @@ Native Android companion to the macOS app: Rust camera protocols, Kotlin Android
 
 ## Install
 
-The current Android preview is **0.1.0-alpha.4**. Download its signed `.apk` from the project's **Android preview** GitHub release, allow installation from your browser/file manager when Android asks, then open **Reversed engineering Icsee**. It installs alongside the original iCSee app.
+The current Android preview is **0.1.0-alpha.5**. Download its signed `.apk` from the project's **Android preview** GitHub release, allow installation from your browser/file manager when Android asks, then open **Reversed engineering Icsee**. It installs alongside the original iCSee app.
 
 - Android 9/API 28 or later; arm64 phones and x86_64 devices. One APK includes both architectures.
 - Choose **Find cameras** on the same Wi-Fi/Ethernet network. Select a result, name it and save; the address and ONVIF port are filled in. RTSP/device-control ports retain iCSee defaults. **Advanced settings** keeps manual ports/channel available. New profiles prefer substream to reduce bandwidth/decoder load.
@@ -14,7 +14,7 @@ The current Android preview is **0.1.0-alpha.4**. Download its signed `.apk` fro
 - Android 17 requires local-network permission; grant it when connecting. Firmware and the phone's video decoder determine compatibility.
 - Android release certificate SHA-256: `c52e6545c9064b8da5389d3c410d15f3f2e36f69c3f9c360974aeb1a700c297f`. Updates signed with this same certificate retain app data. The vendor app's identity or extraction keystore is never reused.
 
-If Android specifically blocks this preview for **developer identity verification**, it is not registered in Google's developer registry. Google's [official advanced flow and developer ADB installation](https://developer.android.com/developer-verification/guides) are available for unregistered apps. With an authorized device selected, the developer installation command is `adb -s DEVICE_SERIAL install -r reversed-engineering-icsee-android-0.1.0-alpha.4.apk`. The package's signing certificate and Google's developer-identity registration are separate checks.
+If Android specifically blocks this preview for **developer identity verification**, it is not registered in Google's developer registry. Google's [official advanced flow and developer ADB installation](https://developer.android.com/developer-verification/guides) are available for unregistered apps. With an authorized device selected, the developer installation command is `adb -s DEVICE_SERIAL install -r reversed-engineering-icsee-android-0.1.0-alpha.5.apk`. The package's signing certificate and Google's developer-identity registration are separate checks.
 
 ## Features and limits
 

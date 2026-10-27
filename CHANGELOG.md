@@ -1,5 +1,9 @@
 # Changelog
 
+## Android 0.1.0-alpha.5
+
+- Keep other live streams running when connecting or stopping a camera on the dashboard.
+
 ## Android 0.1.0-alpha.4
 
 - Allocate live video surfaces only for cameras visible on the dashboard; release them when scrolled out of view.

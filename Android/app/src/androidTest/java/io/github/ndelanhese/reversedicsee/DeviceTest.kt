@@ -107,6 +107,35 @@ class DeviceTest {
         assertTrue("UI condition did not become true", ready)
     }
     private fun views(root: android.view.View): List<android.view.View> = listOf(root) + if (root is android.view.ViewGroup) (0 until root.childCount).flatMap { views(root.getChildAt(it)) } else emptyList()
+    @Test fun stoppingAnotherCameraKeepsTheFirstStreamPlaying() {
+        val port = InstrumentationRegistry.getArguments().getString("audioFirstRtspPort")?.toIntOrNull()
+        org.junit.Assume.assumeTrue("Synthetic RTSP peer required", port != null)
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val activity = activity()
+        try {
+            instrumentation.runOnMainSync {
+                activity.profiles = (1..2).map { CameraProfile(id = "performance-$it", name = "Camera $it", host = "127.0.0.1", port = port!!) }
+                activity.profiles.forEach { activity.connected.add(it.id); activity.credentials[it.id] = Credentials("fixture", "syn:the@tic/?#%&=+") }
+                activity.navigate(DashboardScreen(activity))
+            }
+            awaitUi { views(activity.window.decorView).filterIsInstance<VideoPane>().firstOrNull()?.decodedFrames?.let { it >= 5 } == true }
+            var original: VideoPane? = null
+            var before = 0
+            instrumentation.runOnMainSync {
+                original = views(activity.window.decorView).filterIsInstance<VideoPane>().first()
+                before = original!!.decodedFrames
+                views(activity.window.decorView).filterIsInstance<android.widget.Button>().filter { it.text == activity.getString(R.string.stop) }[1].performClick()
+                assertTrue("Stopping another camera closed the active stream", original!!.intentToPlay)
+                assertSame("Stopping another camera replaced the active player", original, views(activity.window.decorView).filterIsInstance<VideoPane>().first())
+            }
+            awaitUi { original!!.decodedFrames > before }
+            instrumentation.runOnMainSync {
+                views(activity.window.decorView).filterIsInstance<android.widget.Button>().first { it.text == activity.getString(R.string.connect) }.performClick()
+                assertSame("Connecting another camera replaced the active player", original, views(activity.window.decorView).filterIsInstance<VideoPane>().first())
+            }
+            awaitUi { views(activity.window.decorView).filterIsInstance<VideoPane>().count { it.decodedFrames >= 5 } == 2 }
+        } finally { instrumentation.runOnMainSync { activity.finish() } }
+    }
     @Test fun dashboardAllocatesPlayersOnlyForVisibleCameras() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val port = InstrumentationRegistry.getArguments().getString("audioFirstRtspPort")?.toIntOrNull()

@@ -238,19 +238,21 @@ class DashboardScreen(app: MainActivity) : CameraScreen(app) {
             app.button(empty, R.string.add_manually) { app.editCamera() }
         }
         val cards = mutableListOf<Triple<CameraProfile, LinearLayout, AspectFrame>>()
+        var updateVisibility: () -> Unit = {}
+        fun disconnected(preview: AspectFrame) {
+            preview.background = app.surface(0xff202b25.toInt(), 0)
+            val offline = LinearLayout(app).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER }
+            preview.addView(offline, FrameLayout.LayoutParams(-1, -1))
+            ImageView(app).apply { setImageResource(R.drawable.ic_camera); imageTintList = ColorStateList.valueOf(0xffa7b8aa.toInt()); offline.addView(this, LinearLayout.LayoutParams(app.dp(32), app.dp(32))) }
+            app.text(offline, app.getString(R.string.disconnected), 13f).apply { gravity = Gravity.CENTER; setTextColor(0xffc7d3c9.toInt()) }
+        }
         for (camera in app.profiles) {
             val card = app.column().apply { background = app.surface(); setPadding(0, 0, 0, app.dp(10)); clipToOutline = true }
             content.addView(card, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = app.dp(16) })
             val preview = AspectFrame(app)
             card.addView(preview, LinearLayout.LayoutParams(-1, -2))
             val connected = camera.id in app.connected && app.credentials[camera.id] != null
-            if (!connected) {
-                preview.background = app.surface(0xff202b25.toInt(), 0)
-                val offline = LinearLayout(app).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER }
-                preview.addView(offline, FrameLayout.LayoutParams(-1, -1))
-                ImageView(app).apply { setImageResource(R.drawable.ic_camera); imageTintList = ColorStateList.valueOf(0xffa7b8aa.toInt()); offline.addView(this, LinearLayout.LayoutParams(app.dp(32), app.dp(32))) }
-                app.text(offline, app.getString(R.string.disconnected), 13f).apply { gravity = Gravity.CENTER; setTextColor(0xffc7d3c9.toInt()) }
-            }
+            if (!connected) disconnected(preview)
             val info = app.column().apply { setPadding(app.dp(16), app.dp(10), app.dp(16), 0) }; card.addView(info)
             val heading = app.row(info)
             app.text(heading, camera.name, 18f).apply { typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL); layoutParams = LinearLayout.LayoutParams(0, -2, 1f) }
@@ -258,10 +260,28 @@ class DashboardScreen(app: MainActivity) : CameraScreen(app) {
             app.text(info, camera.host, 13f).setPadding(0, 0, 0, app.dp(8))
             cards.add(Triple(camera, card, preview))
             val actions = app.row(info)
-            app.button(actions, if (camera.id in app.connected) R.string.stop else R.string.connect) {
-                if (camera.id in app.connected) { app.connected.remove(camera.id); show() }
-                else app.authenticate(camera) { app.connected.add(camera.id); show() }
-            }.also { if (camera.id !in app.connected) app.primary(it) }
+            lateinit var action: Button
+            lateinit var normalBackground: android.graphics.drawable.Drawable
+            lateinit var normalText: ColorStateList
+            fun refreshCard() {
+                if (shown != generation) return
+                val active = camera.id in app.connected
+                if (!active) videos.remove(camera.id)?.close()
+                preview.removeAllViews()
+                preview.background = null
+                if (!active) disconnected(preview)
+                action.setText(if (active) R.string.stop else R.string.connect)
+                if (active) { action.background = normalBackground; action.setTextColor(normalText) }
+                else app.primary(action)
+                updateVisibility()
+            }
+            action = app.button(actions, if (camera.id in app.connected) R.string.stop else R.string.connect) {
+                if (camera.id in app.connected) { app.connected.remove(camera.id); refreshCard() }
+                else app.authenticate(camera) { if (shown == generation) { app.connected.add(camera.id); refreshCard() } }
+            }
+            normalBackground = action.background
+            normalText = action.textColors
+            if (camera.id !in app.connected) app.primary(action)
             app.icon(actions, R.drawable.ic_expand, R.string.fullscreen) { app.authenticate(camera) { credentials -> app.connected.add(camera.id); app.navigate(EnlargedScreen(app, camera, credentials)) } }
 
         }
@@ -283,6 +303,7 @@ class DashboardScreen(app: MainActivity) : CameraScreen(app) {
                 preview.removeView(video)
             }
         } }
+        updateVisibility = { visibility() }
         scroll.setOnScrollChangeListener { _, _, _, _, _ -> visibility() }; content.post { visibility() }
     }
     private fun aboutMenu(anchor: View) {
