@@ -216,9 +216,11 @@ class MainActivity : Activity() {
 }
 
 class DashboardScreen(app: MainActivity) : CameraScreen(app) {
-    private val videos = mutableListOf<VideoPane>()
+    private val videos = mutableMapOf<String, VideoPane>()
+    private var generation = 0
     override fun show() {
-        videos.forEach { it.close() }; videos.clear()
+        val shown = ++generation
+        videos.values.forEach { it.close() }; videos.clear()
         val root = app.frame(app.getString(R.string.cameras), false)
         val header = root.getChildAt(0) as LinearLayout
         app.icon(header, R.drawable.ic_discover, R.string.find_cameras) { app.navigate(DiscoveryScreen(app)) }
@@ -235,16 +237,14 @@ class DashboardScreen(app: MainActivity) : CameraScreen(app) {
             app.button(empty, R.string.find_cameras) { app.navigate(DiscoveryScreen(app)) }.also { app.primary(it) }
             app.button(empty, R.string.add_manually) { app.editCamera() }
         }
-        val cards = mutableListOf<Triple<CameraProfile, LinearLayout, VideoPane?>>()
+        val cards = mutableListOf<Triple<CameraProfile, LinearLayout, AspectFrame>>()
         for (camera in app.profiles) {
             val card = app.column().apply { background = app.surface(); setPadding(0, 0, 0, app.dp(10)); clipToOutline = true }
             content.addView(card, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = app.dp(16) })
             val preview = AspectFrame(app)
             card.addView(preview, LinearLayout.LayoutParams(-1, -2))
-            val video = if (camera.id in app.connected && app.credentials[camera.id] != null) app.video().also {
-                preview.addView(it, FrameLayout.LayoutParams(-1, -1)); videos.add(it)
-            } else null
-            if (video == null) {
+            val connected = camera.id in app.connected && app.credentials[camera.id] != null
+            if (!connected) {
                 preview.background = app.surface(0xff202b25.toInt(), 0)
                 val offline = LinearLayout(app).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER }
                 preview.addView(offline, FrameLayout.LayoutParams(-1, -1))
@@ -256,7 +256,7 @@ class DashboardScreen(app: MainActivity) : CameraScreen(app) {
             app.text(heading, camera.name, 18f).apply { typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL); layoutParams = LinearLayout.LayoutParams(0, -2, 1f) }
             app.icon(heading, R.drawable.ic_more, R.string.more) { menu(camera, heading) }
             app.text(info, camera.host, 13f).setPadding(0, 0, 0, app.dp(8))
-            cards.add(Triple(camera, card, video))
+            cards.add(Triple(camera, card, preview))
             val actions = app.row(info)
             app.button(actions, if (camera.id in app.connected) R.string.stop else R.string.connect) {
                 if (camera.id in app.connected) { app.connected.remove(camera.id); show() }
@@ -266,11 +266,22 @@ class DashboardScreen(app: MainActivity) : CameraScreen(app) {
 
         }
         val scroll = content.parent as ScrollView
-        fun visibility() { val bounds = Rect(); for ((camera, card, video) in cards) {
-            if (video == null) continue
-            val visible = video.getGlobalVisibleRect(bounds) && bounds.height() > app.dp(32)
-            if (visible && !video.intentToPlay) app.credentials[camera.id]?.let { video.live(camera, it) }
-            if (!visible && video.intentToPlay) video.suspendLive()
+        fun visibility() { if (shown != generation) return; val bounds = Rect(); for ((camera, _, preview) in cards) {
+            val credentials = app.credentials[camera.id]
+            if (camera.id !in app.connected || credentials == null) continue
+            val visible = preview.getGlobalVisibleRect(bounds) && bounds.height() > app.dp(32)
+            val video = videos[camera.id]
+            if (visible && video == null) {
+                app.video().also {
+                    videos[camera.id] = it
+                    preview.addView(it, FrameLayout.LayoutParams(-1, -1))
+                    it.live(camera, credentials)
+                }
+            } else if (!visible && video != null) {
+                videos.remove(camera.id)
+                video.close()
+                preview.removeView(video)
+            }
         } }
         scroll.setOnScrollChangeListener { _, _, _, _, _ -> visibility() }; content.post { visibility() }
     }
@@ -297,7 +308,7 @@ class DashboardScreen(app: MainActivity) : CameraScreen(app) {
             R.string.delete -> app.confirm(app.getString(R.string.delete), app.getString(R.string.delete_confirm)) { app.profiles = app.profiles.filter { it.id != camera.id }; app.connected.remove(camera.id); app.credentials.remove(camera.id); app.vault.remove(camera.id); app.persist(); show() }
         }; true }; menu.show()
     }
-    override fun pause() { super.pause(); videos.forEach { it.close() }; videos.clear() }
+    override fun pause() { generation++; super.pause(); videos.values.forEach { it.close() }; videos.clear() }
 }
 
 class EnlargedScreen(app: MainActivity, private val camera: CameraProfile, private val credentials: Credentials) : CameraScreen(app) {

@@ -1,5 +1,9 @@
 # Changelog
 
+## Android 0.1.0-alpha.4
+
+- Allocate live video surfaces only for cameras visible on the dashboard; release them when scrolled out of view.
+
 ## Android 0.1.0-alpha.3
 
 - Keep the audio track active but muted during live video, avoiding session teardown on affected cameras.

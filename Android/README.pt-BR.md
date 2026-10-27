@@ -6,11 +6,11 @@ Versão Android nativa: protocolos em Rust, interface Kotlin e vídeo LibVLC. Co
 
 ## Instalar
 
-Baixe o APK assinado **0.1.0-alpha.3** na release de prévia Android do GitHub. Android 9 ou posterior, arm64/x86_64. Autorize instalação pelo navegador/gerenciador quando solicitado. Instala junto com o iCSee original.
+Baixe o APK assinado **0.1.0-alpha.4** na release de prévia Android do GitHub. Android 9 ou posterior, arm64/x86_64. Autorize instalação pelo navegador/gerenciador quando solicitado. Instala junto com o iCSee original.
 
 Toque **Encontrar câmeras** no mesmo Wi-Fi ou rede Ethernet. Selecione um resultado, escolha o nome e salve; endereço e porta ONVIF são preenchidos. Portas RTSP/controle usam os padrões iCSee. **Ajustes avançados** permite alterar portas/canal; cadastro manual continua disponível. Conecte com suas credenciais locais. A opção de lembrar senha usa criptografia AES-GCM com Android Keystore; backups e preenchimento automático desses campos ficam excluídos. Android 17 pede permissão de rede local.
 
-Se o Android bloquear especificamente por **verificação de identidade do desenvolvedor**, esta prévia ainda não foi registrada no cadastro do Google. O [fluxo avançado oficial ou instalação de desenvolvimento via ADB](https://developer.android.com/developer-verification/guides) permite instalar apps não registrados. Com seu aparelho autorizado/selecionado: `adb -s SERIAL_DO_APARELHO install -r reversed-engineering-icsee-android-0.1.0-alpha.3.apk`. Assinatura do APK e cadastro de identidade são verificações distintas.
+Se o Android bloquear especificamente por **verificação de identidade do desenvolvedor**, esta prévia ainda não foi registrada no cadastro do Google. O [fluxo avançado oficial ou instalação de desenvolvimento via ADB](https://developer.android.com/developer-verification/guides) permite instalar apps não registrados. Com seu aparelho autorizado/selecionado: `adb -s SERIAL_DO_APARELHO install -r reversed-engineering-icsee-android-0.1.0-alpha.4.apk`. Assinatura do APK e cadastro de identidade são verificações distintas.
 
 O menu **⋯** abre controles ou gravações. PTZ, posições e opções de imagem dependem do que a câmera anuncia. A descoberta de ajustes é somente leitura; alterações são explícitas, verificam conflitos e conferem os valores retornados. Formatação, exclusão de gravações e alterações de contas não fazem parte do app.
 
