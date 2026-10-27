@@ -1,0 +1,61 @@
+name: Android
+
+on:
+  push:
+    branches: [main]
+    paths: ['Android/**', '.github/workflows/android.yml']
+  pull_request:
+    paths: ['Android/**', '.github/workflows/android.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Android build and protocol tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      GRADLE_HOME: ''
+      RUSTUP_TOOLCHAIN: '1.97.0'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install Android build packages
+        run: |
+          mkdir -p "$RUNNER_TEMP/android-sdk/cmdline-tools"
+          curl --fail --location --retry 3 --output "$RUNNER_TEMP/android-tools.zip" https://dl.google.com/android/repository/commandlinetools-linux-16111833_latest.zip
+          echo "0877a1d048fe4a24efe2eff536ca4223f7adeb58648bb81909d33c446918cfa8  $RUNNER_TEMP/android-tools.zip" | sha256sum --check
+          unzip -q "$RUNNER_TEMP/android-tools.zip" -d "$RUNNER_TEMP/android-tools"
+          mv "$RUNNER_TEMP/android-tools/cmdline-tools" "$RUNNER_TEMP/android-sdk/cmdline-tools/latest"
+          echo "ANDROID_HOME=$RUNNER_TEMP/android-sdk" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$RUNNER_TEMP/android-sdk" >> "$GITHUB_ENV"
+          echo "$RUNNER_TEMP/android-sdk/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+          export ANDROID_HOME="$RUNNER_TEMP/android-sdk"
+          { yes || true; } | "$ANDROID_HOME/cmdline-tools/latest/bin/android" --no-metrics sdk install 'platforms;android-37.0' 'build-tools;37.0.0' 'ndk;29.0.14206865'
+      - name: Pinned Rust toolchain
+        run: rustup toolchain install 1.97.0 --profile minimal --component rustfmt --component clippy --target aarch64-linux-android --target x86_64-linux-android
+      - name: Rust formatting and lint
+        working-directory: Android/native
+        run: |
+          cargo fmt --check
+          cargo clippy --locked --all-targets -- -D warnings
+      - name: Packaging verifier tests
+        run: python3 Android/test_build.py
+      - name: Build unsigned APK (no private signing key in CI)
+        run: python3 Android/build.py
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: android-unsigned-apk
+          path: dist/android/*
+          if-no-files-found: error

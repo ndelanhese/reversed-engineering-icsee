@@ -1,5 +1,7 @@
 # Reversed engineering Icsee
 
+**Prévia Android:** versão nativa Rust/Kotlin em APK alpha. Veja [instalação, recursos e limites de validação](Android/README.pt-BR.md).
+
 <img src="Assets/AppIcon.png" width="96" alt="Ícone original com lente e seta de retorno">
 
 **Cliente nativo macOS para câmeras iCSee / Xiongmai pela sua rede.**

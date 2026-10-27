@@ -14,6 +14,7 @@ research-private/
 *.apks
 *.xapk
 *.aab
+*.aar
 *.so
 *.jar
 *.mjpeg
@@ -31,3 +32,11 @@ research-private/
 .env.*
 credentials*.json
 cameras*.json
+
+# Android build products and machine-local configuration.
+Android/.gradle/
+Android/.kotlin/
+Android/local.properties
+Android/**/build/
+Android/native/target/
+Android/app/src/main/jniLibs/

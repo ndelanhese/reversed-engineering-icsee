@@ -1,5 +1,11 @@
 # Third-party notices
 
+## Android companion
+
+The Android application in `Android/` uses unmodified LibVLC for Android 3.7.7 under LGPL-2.1-or-later. It uses the engine/bindings, not the GPL VLC Android application. The exact AAR hash, upstream bindings and VLC base revisions/patch directory are recorded in [Android/libvlc-source.json](Android/libvlc-source.json). Corresponding source snapshots/build recipes accompany Android preview assets.
+
+Kotlin and AndroidX dependencies use Apache-2.0. The LibVLC-provided libc++ runtime uses Apache-2.0 with LLVM exception. The Rust crate's locked dependency license texts/index and the LGPL text are included in the APK's assets and [Android notices](Android/app/src/main/assets/THIRD_PARTY_NOTICES.txt). Original Android app code and icon remain MIT. No iCSee SDK or decompiled vendor code is included. See [Android build and relinking instructions](Android/README.md#build).
+
 The MIT license covers Reversed engineering Icsee's original source, geometric app icon and documentation. Third-party code retains its own license. Proprietary camera software is not redistributed.
 
 | Component | Role | Licensing / source |

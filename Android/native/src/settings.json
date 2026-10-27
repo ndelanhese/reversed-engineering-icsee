@@ -1,0 +1,506 @@
+[
+  {
+    "name": "SystemFunction",
+    "group": "Device information",
+    "readOnly": true,
+    "capability": true
+  },
+  {
+    "name": "ChannelSystemFunction",
+    "group": "Device information",
+    "readOnly": true,
+    "capability": false
+  },
+  {
+    "name": "SystemInfo",
+    "group": "Device information",
+    "readOnly": true,
+    "capability": false
+  },
+  {
+    "name": "SystemInfoEx",
+    "group": "Device information",
+    "readOnly": true,
+    "capability": false
+  },
+  {
+    "name": "PtzAbility",
+    "group": "Device information",
+    "readOnly": true,
+    "capability": true
+  },
+  {
+    "name": "EncodeCapability",
+    "group": "Device information",
+    "readOnly": true,
+    "capability": true
+  },
+  {
+    "name": "Encode264ability",
+    "group": "Device information",
+    "readOnly": true,
+    "capability": true
+  },
+  {
+    "name": "Camera.Param",
+    "group": "Image and lighting",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Camera.ParamEx",
+    "group": "Image and lighting",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Camera.ClearFog",
+    "group": "Image and lighting",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Camera.FishEye",
+    "group": "Image and lighting",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Camera.FishLensParam",
+    "group": "Image and lighting",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Camera.WhiteLight",
+    "group": "Image and lighting",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "AVEnc.VideoWidget",
+    "group": "Image and lighting",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "fVideo.OsdLogo",
+    "group": "Image and lighting",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "ChannelTitle",
+    "group": "Image and lighting",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "ChnTitleOSDCharParam",
+    "group": "Image and lighting",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Consumer.NotifyLight",
+    "group": "Image and lighting",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Dev.LP4GLedParameter",
+    "group": "Image and lighting",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Simplify.Encode",
+    "group": "Video and audio",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "AVEnc.MultiChannelEncode",
+    "group": "Video and audio",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "AVEnc.EncodeEx.Dst3irdFmt",
+    "group": "Video and audio",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "AVEnc.EncodeEx.Dst4irdFmt",
+    "group": "Video and audio",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "AVEnc.EncodePlayInfo",
+    "group": "Video and audio",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "AVEnc.SmartH264V2",
+    "group": "Video and audio",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "AVEnc.SmartH264",
+    "group": "Video and audio",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "fVideo.Volume",
+    "group": "Video and audio",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "fVideo.InVolumeIn",
+    "group": "Video and audio",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Detect.Analyze",
+    "group": "Detection and alarms",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Detect.MotionDetect",
+    "group": "Detection and alarms",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Detect.MotionDetectIPC",
+    "group": "Detection and alarms",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Detect.HumanDetection",
+    "group": "Detection and alarms",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Detect.CarShapeDetection",
+    "group": "Detection and alarms",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Detect.NonMotorDetection",
+    "group": "Detection and alarms",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Detect.PetDetection",
+    "group": "Detection and alarms",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Detect.LivestockDetection",
+    "group": "Detection and alarms",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Detect.CryDetection",
+    "group": "Detection and alarms",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Detect.VolumeDetection",
+    "group": "Detection and alarms",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Detect.KeyWordDetect",
+    "group": "Detection and alarms",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Detect.FireDetection",
+    "group": "Detection and alarms",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Detect.BlindDetect",
+    "group": "Detection and alarms",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Detect.LossDetect",
+    "group": "Detection and alarms",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Detect.DetectTrack",
+    "group": "Detection and alarms",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Detect.DetectTrackDirection",
+    "group": "Detection and alarms",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Alarm.IntellAlertAlarm",
+    "group": "Detection and alarms",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Alarm.LocalTipSwitch",
+    "group": "Detection and alarms",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Alarm.PIR",
+    "group": "Detection and alarms",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Alarm.WifiAlarm",
+    "group": "Detection and alarms",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Consumer.ConsSensorAlarm",
+    "group": "Detection and alarms",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Record",
+    "group": "Recording and storage",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "System.RecordOrSlowmotion",
+    "group": "Recording and storage",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "WorkMode.CapturePriority",
+    "group": "Recording and storage",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "ExtRecord",
+    "group": "Recording and storage",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "SupportExtRecord",
+    "group": "Recording and storage",
+    "readOnly": true,
+    "capability": false
+  },
+  {
+    "name": "StorageGlobal",
+    "group": "Recording and storage",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "StorageInfo",
+    "group": "Recording and storage",
+    "readOnly": true,
+    "capability": false
+  },
+  {
+    "name": "Storage.StorageNotExist",
+    "group": "Recording and storage",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Storage.Snapshot",
+    "group": "Recording and storage",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Storage.StorageInitPolicy",
+    "group": "Recording and storage",
+    "readOnly": true,
+    "capability": false
+  },
+  {
+    "name": "NetWork.NetCommon",
+    "group": "Network",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "NetWork.NetDHCP",
+    "group": "Network",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "NetWork.NetDNS",
+    "group": "Network",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "NetWork.Wifi",
+    "group": "Network",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "WifiAP",
+    "group": "Network",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "WifiRouteInfo",
+    "group": "Network",
+    "readOnly": true,
+    "capability": false
+  },
+  {
+    "name": "System.NetWorkMode",
+    "group": "Network",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "NetWork.WifiWakeupType",
+    "group": "Network",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "WIFINVR.Channnel",
+    "group": "Network",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "WIFINVR.BaseStationMode",
+    "group": "Network",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "General.General",
+    "group": "Time and privacy",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "General.Location",
+    "group": "Time and privacy",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "System.TimeZone",
+    "group": "Time and privacy",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "General.TimingSleep",
+    "group": "Time and privacy",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "General.OneKeyMaskVideo",
+    "group": "Time and privacy",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Consumer.NoDisturbing",
+    "group": "Time and privacy",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Consumer.IntervalWakeUp",
+    "group": "Time and privacy",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Consumer.ReserveWakeUp",
+    "group": "Time and privacy",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "General.Location.Language",
+    "group": "Time and privacy",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "MultiLanguage",
+    "group": "Time and privacy",
+    "readOnly": true,
+    "capability": false
+  },
+  {
+    "name": "Uart.PTZ",
+    "group": "Movement settings",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "Uart.PTZControlCmd",
+    "group": "Movement settings",
+    "readOnly": true,
+    "capability": false
+  },
+  {
+    "name": "Ptz.GunBallLocate",
+    "group": "Movement settings",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "MultiChnPtzLocate",
+    "group": "Movement settings",
+    "readOnly": false,
+    "capability": false
+  },
+  {
+    "name": "MultiChnSplitWindows",
+    "group": "Movement settings",
+    "readOnly": false,
+    "capability": false
+  }
+]
