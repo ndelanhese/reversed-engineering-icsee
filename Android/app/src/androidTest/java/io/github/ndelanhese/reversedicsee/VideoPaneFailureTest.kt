@@ -66,13 +66,13 @@ class VideoPaneFailureTest {
         failure?.let { throw it }
     }
     private fun views(view: View): List<View> = listOf(view) + if (view is ViewGroup) (0 until view.childCount).flatMap { views(view.getChildAt(it)) } else emptyList()
-    private fun withPane(peer: RtspFailurePeer, block: (VideoPane) -> Unit) {
+    private fun withPane(peer: RtspFailurePeer, credentials: Credentials = Credentials("fixture", "synthetic"), block: (VideoPane) -> Unit) {
         val app = instrumentation.targetContext
         val activity = instrumentation.startActivitySync(Intent(app, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) as MainActivity
         var pane: VideoPane? = null
         try {
             onUi {
-                activity.navigate(EnlargedScreen(activity, CameraProfile(name = "Synthetic failure", host = "127.0.0.1", port = peer.port), Credentials("fixture", "synthetic")))
+                activity.navigate(EnlargedScreen(activity, CameraProfile(name = "Synthetic failure", host = "127.0.0.1", port = peer.port), credentials))
                 pane = views(activity.window.decorView).filterIsInstance<VideoPane>().first()
             }
             assertTrue("LibVLC did not contact the RTSP peer", peer.accepted.await(5, TimeUnit.SECONDS))
@@ -82,6 +82,17 @@ class VideoPaneFailureTest {
     @Test fun rejectedRtspCredentialsDoNotLeaveConnecting() {
         RtspFailurePeer(unauthorized = true).use { peer -> withPane(peer) { pane ->
             awaitTerminal(pane, 45000)
+        } }
+    }
+    @Test fun failedRtspDoesNotWriteThePasswordToSystemLogs() {
+        val syntheticSecret = "fixture-only-" + java.util.UUID.randomUUID().toString()
+        RtspFailurePeer(unauthorized = true).use { peer -> withPane(peer, Credentials("fixture", syntheticSecret)) { pane ->
+            awaitTerminal(pane, 45000)
+            Thread.sleep(500)
+            val process = ProcessBuilder("/system/bin/logcat", "-d", "--pid=" + android.os.Process.myPid(), "-s", "VLC:V", "VLC-std:V", "*:S").start()
+            val logs = process.inputStream.bufferedReader().use { it.readText() }
+            assertEquals(0, process.waitFor())
+            assertFalse("RTSP credentials were written to system logs", logs.contains(syntheticSecret))
         } }
     }
     @Test fun silentRtspPeerCanBeStoppedWithoutBlockingTheUi() {

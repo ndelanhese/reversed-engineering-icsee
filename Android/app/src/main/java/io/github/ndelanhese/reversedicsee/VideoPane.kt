@@ -64,6 +64,10 @@ class VideoPane(context: Context, private val vlc: LibVLC) : FrameLayout(context
         val next = try { MediaPlayer(vlc) } catch (error: Throwable) { playerSlots.release(); throw error }
         player = next
         try {
+            if (live && (!next.setAudioOutput("android_audiotrack") || next.setVolume(0) != 0)) {
+                releasePlayer(); status.visibility = VISIBLE; status.text = context.getString(R.string.error_internal)
+                return
+            }
             next.attachViews(video, null, false, false)
             var reachedVideo = false
             next.setEventListener { event ->
@@ -77,7 +81,8 @@ class VideoPane(context: Context, private val vlc: LibVLC) : FrameLayout(context
             try {
                 media.apply {
                     setHWDecoderEnabled(true, false)
-                    if (live) { addOption(":rtsp-tcp"); addOption(":network-caching=300"); addOption(":no-audio") }
+                    // Some cameras stop all video when the audio track is torn down.
+                    if (live) { addOption(":rtsp-tcp"); addOption(":network-caching=300") }
                 }
                 next.media = media
             } finally { media.release() }

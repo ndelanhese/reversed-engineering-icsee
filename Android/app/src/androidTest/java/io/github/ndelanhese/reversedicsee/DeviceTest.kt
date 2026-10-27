@@ -114,7 +114,7 @@ class DeviceTest {
             try {
                 instrumentation.runOnMainSync { activity.navigate(RecordingsScreen(activity, peer.camera, Credentials("fixture", "synthetic"))) }
                 assertTrue(peer.queryStarted.await(4, java.util.concurrent.TimeUnit.SECONDS))
-                instrumentation.runOnMainSync { views(activity.window.decorView).filterIsInstance<android.widget.Button>().first { it.text == "›" }.performClick() }
+                instrumentation.runOnMainSync { views(activity.window.decorView).first { it.contentDescription == activity.getString(R.string.next) }.performClick() }
                 assertTrue("Changing date did not start a replacement history query", peer.secondQuery.await(4, java.util.concurrent.TimeUnit.SECONDS))
                 awaitUi { views(activity.window.decorView).filterIsInstance<android.widget.ListView>().any { it.adapter.count == 1 } }
             } finally { instrumentation.runOnMainSync { activity.finish() } }

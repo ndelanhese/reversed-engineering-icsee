@@ -122,4 +122,10 @@
     <string name="add_manually">Add manually</string>
     <string name="advanced">Advanced settings</string>
     <string name="discovery_defaults">ONVIF address detected. RTSP and device-control ports use iCSee defaults; change them under Advanced settings if needed.</string>
+    <string name="empty_title">A clear view, close to home</string>
+    <string name="camera_details">Give your camera a name and enter its local network address.</string>
+    <string name="authentication_hint">Use the local account configured on your camera.</string>
+    <string name="discovery_results">Cameras on your network</string>
+    <string name="discovery_ready">Ready to search your network.</string>
+    <string name="discovery_add_hint">Choose a camera to review its address and add it.</string>
 </resources>

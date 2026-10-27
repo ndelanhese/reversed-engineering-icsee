@@ -1,0 +1,17 @@
+<resources>
+    <color name="ui_canvas">#F2F4EF</color>
+    <color name="ui_surface">#FDFEFB</color>
+    <color name="ui_text">#24332B</color>
+    <color name="ui_muted">#65716A</color>
+    <color name="ui_accent">#276749</color>
+    <color name="ui_button">#EAF0E9</color>
+    <color name="ui_disabled">#8A938D</color>
+    <color name="ui_on_accent">#F7FFF9</color>
+    <color name="ui_primary_disabled">#D3DDD5</color>
+    <color name="ui_field">#F0F3EE</color>
+    <color name="ui_outline">#DBE3DA</color>
+    <color name="ui_ripple">#18276749</color>
+    <color name="ui_primary_ripple">#30FFFFFF</color>
+    <color name="ui_timeline_track">#DCE4DA</color>
+    <color name="ui_timeline_label">#536358</color>
+</resources>

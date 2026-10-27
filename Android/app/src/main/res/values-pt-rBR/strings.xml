@@ -122,4 +122,10 @@
     <string name="add_manually">Adicionar manualmente</string>
     <string name="advanced">Ajustes avançados</string>
     <string name="discovery_defaults">Endereço ONVIF detectado. As portas RTSP e de controle usam os padrões iCSee; altere em Ajustes avançados se necessário.</string>
+    <string name="empty_title">Sua casa, mais perto</string>
+    <string name="camera_details">Dê um nome à câmera e informe seu endereço na rede local.</string>
+    <string name="authentication_hint">Use a conta local configurada na sua câmera.</string>
+    <string name="discovery_results">Câmeras na sua rede</string>
+    <string name="discovery_ready">Tudo pronto para buscar na sua rede.</string>
+    <string name="discovery_add_hint">Escolha uma câmera para conferir o endereço e adicionar.</string>
 </resources>

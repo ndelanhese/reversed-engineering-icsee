@@ -62,9 +62,9 @@ class RecordingsScreen(app: MainActivity, private val camera: CameraProfile, pri
         val body = app.scroll(root)
         status = app.text(body, app.getString(if (complete) R.string.temporary else R.string.partial), 13f)
         val dateRow = app.row(body)
-        app.button(dateRow, "‹") { chooseDay(day.minusDays(1)) }
+        app.icon(dateRow, R.drawable.ic_back, R.string.previous) { chooseDay(day.minusDays(1)) }
         app.button(dateRow, day.toString()) { DatePickerDialog(app, { _, y, m, d -> chooseDay(LocalDate.of(y, m + 1, d)) }, day.year, day.monthValue - 1, day.dayOfMonth).show() }
-        app.button(dateRow, "›") { chooseDay(day.plusDays(1)) }
+        app.icon(dateRow, R.drawable.ic_back, R.string.next) { chooseDay(day.plusDays(1)) }.rotation = 180f
         app.button(body, R.string.choose_date) { calendarDialog() }
         val actions = app.row(body)
         app.button(actions, R.string.refresh) { load() }; app.button(actions, R.string.go_time) { goTime() }
@@ -73,17 +73,17 @@ class RecordingsScreen(app: MainActivity, private val camera: CameraProfile, pri
         body.addView(DayTimeline(app, day, records) { t -> val i = findRecording(t); if (i >= 0) play(i) }, LinearLayout.LayoutParams(-1, app.dp(54)))
         val list = ListView(app)
         list.adapter = ArrayAdapter(app, android.R.layout.simple_list_item_1, (0 until records.length()).map { i -> val r = records.getJSONObject(i); "${r.getString("begin")} – ${r.getString("end").substringAfter(' ')}" })
-        list.setOnItemClickListener { _, _, position, _ -> play(position) }; body.addView(list, LinearLayout.LayoutParams(-1, app.dp(300)))
+        list.setOnItemClickListener { _, _, position, _ -> play(position) }; body.addView(list, LinearLayout.LayoutParams(-1, if (records.length() == 0) 0 else app.dp(300)))
         if (records.length() == 0) app.text(body, app.getString(R.string.no_recordings))
     }
     private fun calendarDialog() {
         val panel = app.column(); val status = app.text(panel, app.getString(R.string.loading))
-        val dialog = AlertDialog.Builder(app).setTitle("${day.year}-${day.monthValue}").setView(panel).setNegativeButton(R.string.cancel, null).create()
+        val dialog = AlertDialog.Builder(app).setTitle("${day.year}-${day.monthValue}").setView(ScrollView(app).apply { addView(panel) }).setNegativeButton(R.string.cancel, null).create()
         dialog.show()
         scope.run(camera.request("calendar", credentials).put("year", day.year).put("month", day.monthValue), { result ->
             status.text = app.getString(R.string.choose_date)
-            val days = (result as JSONObject).getJSONArray("days"); val grid = GridLayout(app).apply { columnCount = 7 }; panel.addView(grid)
-            for (i in 0 until days.length()) { val d = days.getInt(i); grid.addView(Button(app).apply { text = "$d •"; minWidth = 0; minimumWidth = 0; setOnClickListener { dialog.dismiss(); chooseDay(day.withDayOfMonth(d)) } }, GridLayout.LayoutParams().apply { width = app.dp(44); height = app.dp(48) }) }
+            val days = (result as JSONObject).getJSONArray("days"); val grid = GridLayout(app).apply { columnCount = 5 }; panel.addView(grid)
+            for (i in 0 until days.length()) { val d = days.getInt(i); grid.addView(Button(app).apply { text = "$d •"; minWidth = 0; minimumWidth = 0; setOnClickListener { dialog.dismiss(); chooseDay(day.withDayOfMonth(d)) } }, GridLayout.LayoutParams().apply { width = app.dp(48); height = app.dp(48) }) }
         }, { status.text = errorMessage(app, it) })
     }
     private fun goTime() {
@@ -229,8 +229,8 @@ class DayTimeline(context: android.content.Context, private val day: LocalDate, 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        paint.color = 0xff2a3544.toInt(); canvas.drawRect(0f, 0f, width.toFloat(), height * .55f, paint)
-        paint.color = 0xff76aeff.toInt()
+        paint.color = context.getColor(R.color.ui_timeline_track); canvas.drawRect(0f, 0f, width.toFloat(), height * .55f, paint)
+        paint.color = context.getColor(R.color.ui_accent)
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         val origin = day.atStartOfDay()
         for (i in 0 until records.length()) { val r = records.getJSONObject(i); val begin = LocalDateTime.parse(r.getString("begin"), formatter); val end = LocalDateTime.parse(r.getString("end"), formatter)
@@ -238,7 +238,7 @@ class DayTimeline(context: android.content.Context, private val day: LocalDate, 
             val b = java.time.Duration.between(origin, end).seconds.coerceIn(0, 86400) / 86400f * width
             canvas.drawRect(a, 0f, b, height * .55f, paint)
         }
-        paint.color = 0xffc4cedb.toInt(); paint.textSize = 11 * resources.displayMetrics.scaledDensity
+        paint.color = context.getColor(R.color.ui_timeline_label); paint.textSize = 11 * resources.displayMetrics.scaledDensity
         canvas.drawText("00:00", 0f, height * .9f, paint); canvas.drawText("12:00", width * .45f, height * .9f, paint); canvas.drawText("24:00", width * .86f, height * .9f, paint)
     }
     override fun onTouchEvent(event: MotionEvent): Boolean { if (event.action == MotionEvent.ACTION_UP) { performClick(); selected(day.atStartOfDay().plusSeconds((event.x / width * 86400).toLong().coerceIn(0, 86399))) }; return true }

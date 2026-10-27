@@ -1,5 +1,12 @@
 # Changelog
 
+## Android 0.1.0-alpha.3
+
+- Keep the audio track active but muted during live video, avoiding session teardown on affected cameras.
+- Refresh the native interface with light/dark themes, larger video, compact actions, and a scrollable recordings calendar.
+- Silence native player logs that could contain authenticated stream URLs.
+
+
 ## 0.7.0 / Android 0.1.0-alpha.2
 
 - Find local ONVIF cameras from macOS and Android; select a result to fill its address and ONVIF service automatically. Manual and advanced setup remain available.

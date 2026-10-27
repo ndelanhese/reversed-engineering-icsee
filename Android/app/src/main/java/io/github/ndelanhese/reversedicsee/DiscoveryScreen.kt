@@ -1,6 +1,10 @@
 package io.github.ndelanhese.reversedicsee
 
 import android.content.Context
+import android.graphics.Typeface
+import android.view.Gravity
+import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.wifi.WifiManager
@@ -18,17 +22,38 @@ class DiscoveryScreen(app: MainActivity) : CameraScreen(app) {
 
     override fun show() {
         val root = app.frame(app.getString(R.string.find_cameras))
-        app.text(root, app.getString(R.string.discovery_intro))
-        app.text(root, notice ?: "")
-        val actions = app.row(root)
-        app.button(actions, R.string.search_again) { search() }.isEnabled = !searching
-        app.button(actions, R.string.stop_scan) { stop(); notice = null; show() }.isEnabled = searching
-        app.button(root, R.string.add_manually) { app.editCamera() }
         val results = app.scroll(root)
+        app.text(results, app.getString(R.string.discovery_intro), 15f).setPadding(app.dp(8), 0, app.dp(8), app.dp(16))
+        val status = app.column().apply { background = app.surface(); setPadding(app.dp(16), app.dp(14), app.dp(16), app.dp(14)) }
+        results.addView(status, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = app.dp(12) })
+        val message = app.row(status)
+        if (searching) {
+            val progress = ProgressBar(app).apply { indeterminateTintList = android.content.res.ColorStateList.valueOf(app.accent) }
+            message.addView(progress, LinearLayout.LayoutParams(app.dp(24), app.dp(24)).apply { marginEnd = app.dp(12) })
+        }
+        app.text(message, notice ?: app.getString(R.string.discovery_ready), 15f).layoutParams = LinearLayout.LayoutParams(0, -2, 1f)
+        val actions = app.row(status)
+        app.button(actions, R.string.search_again) { search() }.apply { isEnabled = !searching; if (!searching) app.primary(this) }
+        app.button(actions, R.string.stop_scan) { stop(); notice = null; show() }.isEnabled = searching
+        app.button(results, R.string.add_manually) { app.editCamera() }
+        if (cameras.isNotEmpty()) {
+            app.text(results, app.getString(R.string.discovery_results), 18f).apply {
+                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL); setPadding(app.dp(8), app.dp(20), 0, app.dp(4))
+            }
+            app.text(results, app.getString(R.string.discovery_add_hint), 13f).setPadding(app.dp(8), 0, app.dp(8), app.dp(12))
+        }
         for (camera in cameras) {
             val saved = app.profiles.any { it.host.equals(camera.host, ignoreCase = true) }
             val label = "${camera.name}\n${camera.host}:${camera.onvifPort}" + if (saved) "\n${app.getString(R.string.already_added)}" else ""
-            app.button(results, label) { app.editCamera(discovered = camera) }.isEnabled = !saved
+            app.button(results, label) { app.editCamera(discovered = camera) }.apply {
+                isEnabled = !saved; gravity = Gravity.START or Gravity.CENTER_VERTICAL
+                setPadding(app.dp(18), app.dp(16), app.dp(18), app.dp(16))
+                setTextColor(if (saved) app.muted else app.ink)
+                background = android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf(app.getColor(R.color.ui_ripple)), app.surface(), null)
+                setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_camera, 0, if (saved) 0 else R.drawable.ic_add, 0)
+                compoundDrawablePadding = app.dp(14)
+                compoundDrawableTintList = android.content.res.ColorStateList.valueOf(if (saved) app.muted else app.ink)
+            }
         }
         if (!launched) { launched = true; search() }
     }
