@@ -29,7 +29,7 @@ Interface segue idioma preferido no macOS: **inglês ou português brasileiro**,
 
 Áudio ao vivo/bidirecional, gravação do vídeo ao vivo no Mac e login na conta de nuvem não foram implementados. O vídeo ao vivo remoto é experimental e usa o número de série da câmera e a infraestrutura P2P do fabricante, sem VPN. Controles e histórico do cartão continuam exigindo acesso à rede local ou VPN. A compatibilidade depende da câmera e do serviço do fabricante.
 
-Para acessar o vídeo remotamente, edite a câmera, ative **Conectar remotamente** e informe o número de série disponível nas informações do dispositivo no iCSee. Conecte com as credenciais locais da câmera. O número de série e o modo ficam nas preferências do macOS; o login na conta iCSee não é necessário.
+Para acessar o vídeo remotamente, edite a câmera, ative **Permitir acesso remoto** e informe o número de série disponível nas informações do dispositivo no iCSee. Conecte com as credenciais locais da câmera. O app usa o IPv4 salvo quando ele pertence a uma sub-rede local ativa; caso contrário, usa acesso remoto. Redes diferentes que usam a mesma faixa de endereços não podem ser distinguidas por essa verificação. Se a câmera recusar o fluxo principal remoto com código 122, o app tenta o fluxo leve, de menor resolução. O número de série e a opção ficam nas preferências do macOS; o login na conta iCSee não é necessário.
 
 **Segurança remota:** a descoberta e a conexão P2P do fabricante não são autenticadas pelo app. A rede ou o servidor intermediário podem expor o vídeo e um hash reutilizável da senha da câmera. Use esse modo apenas se confiar na rede e na infraestrutura do fabricante; uma VPN à sua rede é uma alternativa.
 

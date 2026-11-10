@@ -78,7 +78,7 @@ Packages land in `dist/release/`. See [release maintenance](docs/RELEASING.md) f
 4. Enable **Save in macOS Keychain** only if you want to remember credentials.
 5. Try **Substream** if the main stream is too heavy or unsupported.
 
-For remote live video, edit the camera, enable **Connect remotely**, and enter its serial number from the device information screen in iCSee. Connect with the camera's local credentials. The serial and mode are saved in macOS preferences; no cloud account is required. Disable remote mode to use the local address again.
+For remote live video, edit the camera, enable **Allow remote access**, and enter its serial number from the device information screen in iCSee. Connect with the camera's local credentials. When the saved IPv4 address matches an active local subnet, the app uses that address; otherwise it uses remote access. Subnet matching cannot distinguish unrelated networks that reuse the same address range. A remote main stream rejected with code 122 is retried using the lower-resolution substream. The serial and setting are saved in macOS preferences; no cloud account is required.
 
 ### Saved credentials and Keychain
 

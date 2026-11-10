@@ -152,7 +152,7 @@ def run(binary, mode):
                             send_message(1001, {'Ret': 203 if mode == 'bad_auth' else 100, 'SessionID': '0x0000002A', 'AliveInterval': 2})
                         elif code == 1413:
                             events.add('claim')
-                            send_message(1414, {'Ret': 100}, session=43 if mode == 'bad_session' else 42)
+                            send_message(1414, {'Ret': 122 if mode == 'unavailable_stream' else 100}, session=43 if mode == 'bad_session' else 42)
                         elif code == 1410:
                             events.add(action.lower())
                         elif code == 1006:
@@ -162,7 +162,7 @@ def run(binary, mode):
                             process.send_signal(signal.SIGUSR1)
             if process.poll() is not None:
                 # Allow the final UDP Stop datagram to be read before checking.
-                if mode in ('cancel', 'bad_session', 'bad_auth', 'cancel_start_lost') or 'stop' in events:
+                if mode in ('cancel', 'bad_session', 'bad_auth', 'unavailable_stream', 'cancel_start_lost') or 'stop' in events:
                     break
         stdout, stderr = process.communicate(timeout=2)
         if process.returncode != 0:
@@ -176,6 +176,9 @@ def run(binary, mode):
         elif mode == 'bad_auth':
             if 'login' not in events or 'claim' in events:
                 raise RuntimeError('rejected login was accepted')
+        elif mode == 'unavailable_stream':
+            if 'claim' not in events or 'start' in events:
+                raise RuntimeError('rejected stream was accepted')
         elif mode == 'cancel_start_lost':
             if 'start_lost' not in events or 'start_retransmitted' in events:
                 raise RuntimeError('lost Start was sent again after cancellation')
@@ -197,5 +200,5 @@ def run(binary, mode):
 
 
 if __name__ == '__main__':
-    for scenario in (sys.argv[2:] or ('direct', 'relay', 'cancel', 'cancel_start', 'cancel_keepalive', 'cancel_start_lost', 'cancel_keepalive_lost', 'bad_session', 'bad_auth')):
+    for scenario in (sys.argv[2:] or ('direct', 'relay', 'cancel', 'cancel_start', 'cancel_keepalive', 'cancel_start_lost', 'cancel_keepalive_lost', 'bad_session', 'bad_auth', 'unavailable_stream')):
         run(sys.argv[1], scenario)

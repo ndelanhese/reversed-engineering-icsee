@@ -2,7 +2,7 @@ import Foundation
 import Darwin
 
 enum RemoteProtocolError: Error {
-    case invalidIdentifier, invalidResponse, rejected, unavailable, authentication
+    case invalidIdentifier, invalidResponse, rejected, unavailable, authentication, streamUnavailable
 }
 
 struct RemoteLiveConfiguration: Sendable {

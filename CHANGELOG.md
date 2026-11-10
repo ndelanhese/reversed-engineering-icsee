@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.1 — 2026-11-10
+
+- Prefer the saved local IPv4 address when its subnet is active; otherwise use enabled remote live access.
+- Retry the lower-resolution remote stream when the camera rejects the main stream with code 122.
+- Verify both local and remote live video with one camera; remote viewing from a separate network remains unverified.
+
 ## 0.7.0 — 2026-11-10
 
 - Add experimental remote live viewing using the camera serial number and vendor P2P service; local credentials remain required.

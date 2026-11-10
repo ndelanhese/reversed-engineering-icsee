@@ -26,6 +26,10 @@ subprocess.run(['swiftc','-swift-version','6','-target','arm64-apple-macos14.0',
                 str(root/'Tests/CoreSelfTest.swift'),'-o',str(core_test)],check=True)
 subprocess.run([str(core_test)],check=True)
 
+local_network_test = build / 'local-network-tests'
+subprocess.run(['swiftc', '-swift-version', '6', '-parse-as-library', str(root/'Sources/CameraCore/LocalNetwork.swift'), str(root/'Tests/LocalNetworkTest.swift'), '-o', str(local_network_test)], check=True)
+subprocess.run([str(local_network_test)], check=True)
+
 remote_test = build / 'remote-protocol-tests'
 subprocess.run(['swiftc', '-swift-version', '6', '-target', 'arm64-apple-macos14.0', '-parse-as-library',
                 str(core), str(root/'Sources/CameraRemote/RemoteProtocol.swift'), str(root/'Sources/CameraRemote/RemoteLiveClient.swift'), str(root/'Sources/CameraRemote/RemoteDecoder.swift'), str(root/'Tests/RemoteProtocolTest.swift'),

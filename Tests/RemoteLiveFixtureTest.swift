@@ -49,6 +49,7 @@ import Darwin
         } catch is CancellationError {
             if mode != "cancel" && mode != "cancel_start" && mode != "cancel_start_lost" { precondition(frames > 0) }
         } catch RemoteProtocolError.invalidResponse where mode == "bad_session" {
+        } catch RemoteProtocolError.streamUnavailable where mode == "unavailable_stream" {
         } catch RemoteProtocolError.authentication where mode == "bad_auth" {
         } catch {
             print("FAIL: remote fixture", mode, "stage", client.stage, "error", String(describing: error))
