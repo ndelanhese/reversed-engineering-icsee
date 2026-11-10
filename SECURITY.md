@@ -10,7 +10,7 @@ Use [GitHub private vulnerability reporting](https://github.com/ndelanhese/rever
 
 ## Boundaries and known limitations
 
-- This app expects cameras you own or are authorized to access, on a trusted LAN or VPN. It does not bypass authentication.
+- This app expects cameras you own or are authorized to access. It does not bypass authentication. Remote P2P uses vendor infrastructure and does not authenticate its discovery or relay endpoints; the network or relay may expose video and a reusable camera password hash. Use it only if you trust that infrastructure and network.
 - RTSP and the supported legacy authentication format do not provide end-to-end transport encryption. A derived Sofia credential can be sensitive too. Never treat it as an anonymized password.
 - Names, addresses and camera settings are stored in macOS preferences; they are not secrets encrypted by the app.
 - Optional credentials are stored in macOS Keychain. During a connection, passwords, authenticated URLs and decoded frames exist in process memory, including FFmpeg's memory. The app does not promise memory zeroization or protection from a privileged local process.

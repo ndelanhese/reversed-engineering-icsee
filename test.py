@@ -8,6 +8,8 @@ import shutil
 import subprocess
 import sys
 import select
+import socket
+import threading
 
 parser = argparse.ArgumentParser(description=__doc__)
 modes = parser.add_mutually_exclusive_group()
@@ -23,6 +25,28 @@ core_test = build / 'core-tests'
 subprocess.run(['swiftc','-swift-version','6','-target','arm64-apple-macos14.0','-parse-as-library',str(core),
                 str(root/'Tests/CoreSelfTest.swift'),'-o',str(core_test)],check=True)
 subprocess.run([str(core_test)],check=True)
+
+remote_test = build / 'remote-protocol-tests'
+subprocess.run(['swiftc', '-swift-version', '6', '-target', 'arm64-apple-macos14.0', '-parse-as-library',
+                str(core), str(root/'Sources/CameraRemote/RemoteProtocol.swift'), str(root/'Sources/CameraRemote/RemoteLiveClient.swift'), str(root/'Sources/CameraRemote/RemoteDecoder.swift'), str(root/'Tests/RemoteProtocolTest.swift'),
+                '-o', str(remote_test)], check=True)
+with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as peer:
+    peer.bind(('127.0.0.1', 0))
+    peer.settimeout(5)
+    def respond():
+        request, address = peer.recvfrom(1024)
+        if request == b'ping':
+            peer.sendto(b'pong', address)
+    worker = threading.Thread(target=respond, daemon=True)
+    worker.start()
+    subprocess.run([str(remote_test), str(peer.getsockname()[1])], check=True, timeout=10)
+    worker.join(timeout=5)
+
+remote_fixture = build / 'remote-live-fixture'
+subprocess.run(['swiftc', '-D', 'REMOTE_TESTING', '-swift-version', '6', '-target', 'arm64-apple-macos14.0', '-parse-as-library',
+                str(core), str(root/'Sources/CameraRemote/RemoteProtocol.swift'), str(root/'Sources/CameraRemote/RemoteLiveClient.swift'),
+                str(root/'Tests/RemoteLiveFixtureTest.swift'), '-o', str(remote_fixture)], check=True)
+subprocess.run([sys.executable, str(root/'Tests/RemoteLiveFixtureServer.py'), str(remote_fixture)], check=True, timeout=70)
 
 def run_control_fixture(binary, arguments=(), server_arguments=(), timeout=25):
     server = subprocess.Popen([sys.executable, str(root/'Tests/ControlFixtureServer.py'), *server_arguments],
@@ -49,6 +73,10 @@ def run_control_fixture(binary, arguments=(), server_arguments=(), timeout=25):
             server.wait()
 
 sources = [str(p) for p in sorted((root/'Sources').rglob('*.swift')) if p.name != 'ReversedEngineeringIcseeApp.swift']
+fallback_test = build / 'remote-session-fallback'
+subprocess.run(['swiftc', '-D', 'REMOTE_TESTING', '-swift-version', '6', '-target', 'arm64-apple-macos14.0', '-parse-as-library',
+                *sources, str(root/'Tests/RemoteSessionFallbackTest.swift'), '-o', str(fallback_test)], check=True)
+subprocess.run([str(fallback_test)], check=True, timeout=15)
 control_tests = [
     ('onvif-control', ['Sources/CameraControl/ONVIFTypes.swift', 'Sources/CameraControl/ONVIFClient.swift'], 'Tests/ONVIFControlTest.swift', 30),
     ('dvrip-control', ['Sources/CameraCore/CameraCore.swift', 'Sources/CameraControl/DeviceJSON.swift', 'Sources/CameraControl/DVRIPClient.swift'], 'Tests/DVRIPControlTest.swift', 30),

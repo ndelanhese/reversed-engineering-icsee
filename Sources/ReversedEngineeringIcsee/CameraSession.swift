@@ -32,6 +32,15 @@ final class CameraSession {
     private var deadline: Task<Void, Never>?
     private var lastFrameAt: ContinuousClock.Instant?
     private var generation = UUID()
+    private var remoteClient: (any RemoteStreaming)?
+    private var remoteDecoder: (any RemoteDecoding)?
+    #if REMOTE_TESTING
+    var remoteStartupTimeoutForTesting: Duration?
+    var remoteClientFactoryForTesting: ((RemoteLiveConfiguration) -> any RemoteStreaming)?
+    var remoteDecoderFactoryForTesting: ((Bool, @escaping @Sendable (Data) -> Void) -> any RemoteDecoding)?
+    #endif
+    private var remoteReader: Task<Void, Never>?
+    private var remoteFrames: Task<Void, Never>?
     @ObservationIgnored private var controlCredentials: Credentials?
     @ObservationIgnored private var viewers: [UUID: CameraRenderProfile] = [:]
     @ObservationIgnored private var request: (camera: Camera, credentials: Credentials, sofia: Bool, hardware: Bool)?
@@ -64,6 +73,10 @@ final class CameraSession {
 
     private func launch(camera: Camera, credentials: Credentials, useSofiaQuery: Bool,
                         hardware: Bool, profile: CameraRenderProfile) {
+        if camera.remoteEnabled {
+            launchRemote(camera: camera, credentials: credentials, hardware: hardware, profile: profile)
+            return
+        }
         do {
             let playlist = try camera.endpoint.playlist(username: credentials.username, password: credentials.password, useSofiaQuery: useSofiaQuery)
             let bundled = Bundle.main.url(forAuxiliaryExecutable: "ffmpeg")?.path
@@ -117,23 +130,96 @@ final class CameraSession {
                 try? handle.close()
                 await self?.ended(token: token, failure: diagnostics.value)
             }
-            deadline = Task { [weak self] in
-                let started = ContinuousClock.now
-                while !Task.isCancelled {
-                    try? await Task.sleep(for: .seconds(1))
-                    guard !Task.isCancelled, let self, self.generation == token else { return }
-                    let now = ContinuousClock.now
-                    if streamHasTimedOut(elapsed: started.duration(to: now),
-                                         sinceLastFrame: self.lastFrameAt.map { $0.duration(to: now) }) {
-                        self.stop()
-                        self.state = .failed(String(localized: "The camera stopped sending video. Check the network and credentials, then reconnect."))
-                        return
-                    }
-                }
-            }
+            monitor(token: token)
         } catch {
             stop()
             state = .failed(error.localizedDescription)
+        }
+    }
+
+    private func launchRemote(camera: Camera, credentials: Credentials, hardware: Bool, profile: CameraRenderProfile) {
+        do {
+            let configuration = try RemoteLiveConfiguration(serial: camera.remoteSerial, channel: camera.channel, substream: camera.substream,
+                                                            username: credentials.username, password: credentials.password)
+            let token = generation
+            let client: any RemoteStreaming
+            #if REMOTE_TESTING
+            client = remoteClientFactoryForTesting?(configuration) ?? RemoteLiveClient(configuration: configuration)
+            #else
+            client = RemoteLiveClient(configuration: configuration)
+            #endif
+            let (frames, continuation) = AsyncStream<Data>.makeStream(bufferingPolicy: .bufferingNewest(1))
+            let callback: @Sendable (Data) -> Void = { data in continuation.yield(data) }
+            let decoder: any RemoteDecoding
+            #if REMOTE_TESTING
+            decoder = remoteDecoderFactoryForTesting?(hardware, callback) ?? RemoteDecoder(width: profile.width, fps: profile.fps, hardware: hardware, onFrame: callback)
+            #else
+            decoder = RemoteDecoder(width: profile.width, fps: profile.fps, hardware: hardware, onFrame: callback)
+            #endif
+            remoteClient = client; remoteDecoder = decoder
+            state = .connecting
+            remoteFrames = Task { [weak self] in
+                for await frame in frames {
+                    guard !Task.isCancelled else { return }
+                    self?.receive(frame, token: token)
+                }
+            }
+            remoteReader = Task.detached(priority: .userInitiated) { [weak self] in
+                var message: String?
+                var decoderFailed = false
+                do { try client.run { codec, data in try decoder.write(codec: codec, data: data) } }
+                catch RemoteProtocolError.authentication { message = String(localized: "The camera rejected its local username or password.") }
+                catch RemoteDecoderError.failed { decoderFailed = true }
+                catch is CancellationError { }
+                catch { message = String(localized: "Remote connection ended. Check the camera and credentials, then reconnect.") }
+                decoder.stop()
+                continuation.finish()
+                await self?.remoteEnded(token: token, message: message, decoderFailed: decoderFailed)
+            }
+            #if REMOTE_TESTING
+            monitor(token: token, startupTimeout: remoteStartupTimeoutForTesting ?? .seconds(45))
+            #else
+            monitor(token: token, startupTimeout: .seconds(45))
+            #endif
+        } catch {
+            stop()
+            state = .failed(String(localized: "Invalid remote camera settings."))
+        }
+    }
+
+    private func remoteEnded(token: UUID, message: String?, decoderFailed: Bool) {
+        guard generation == token else { return }
+        if decoderFailed, frames == 0, request?.hardware == true {
+            request?.hardware = false
+            stopDecoder()
+            reconcileViewers()
+            return
+        }
+        stop()
+        state = .failed(message ?? String(localized: "Remote connection ended. Check the camera and credentials, then reconnect."))
+    }
+
+    private func monitor(token: UUID, startupTimeout: Duration = .seconds(20)) {
+        deadline = Task { [weak self] in
+            let started = ContinuousClock.now
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1))
+                guard !Task.isCancelled, let self, self.generation == token else { return }
+                let now = ContinuousClock.now
+                let timedOut = self.lastFrameAt.map { $0.duration(to: now) > .seconds(12) } ?? (started.duration(to: now) > startupTimeout)
+                if timedOut {
+                    if self.request?.camera.remoteEnabled == true, self.frames == 0,
+                       self.request?.hardware == true, self.remoteDecoder?.hasStarted == true {
+                        self.request?.hardware = false
+                        self.stopDecoder()
+                        self.reconcileViewers()
+                        return
+                    }
+                    self.stop()
+                    self.state = .failed(String(localized: "The camera stopped sending video. Check the network and credentials, then reconnect."))
+                    return
+                }
+            }
         }
     }
 
@@ -169,6 +255,10 @@ final class CameraSession {
     }
     private func stopDecoder() {
         generation = UUID()
+        remoteClient?.cancel(); remoteClient = nil
+        remoteDecoder?.stop(); remoteDecoder = nil
+        remoteReader?.cancel(); remoteReader = nil
+        remoteFrames?.cancel(); remoteFrames = nil
         deadline?.cancel()
         deadline = nil
         reader?.cancel()

@@ -23,6 +23,7 @@ It is a small, unofficial interoperability project. It does not embed the Androi
 - One shared stream per camera across its views.
 - Menu bar icon with hover preview and a saved default camera.
 - Local camera authentication, optional macOS Keychain storage, and one compatibility retry for Sofia-style authentication.
+- Experimental remote live video using a camera serial number and the vendor's P2P infrastructure, without a VPN or cloud-account login.
 - Connection diagnostics and a watchdog that stops showing frozen video as live.
 - Native PTZ nudges, Stop, device presets and image controls based on camera-provided profiles/options.
 - Discovered local vendor settings with structured editing, conflict checks and verified readback.
@@ -30,7 +31,7 @@ It is a small, unofficial interoperability project. It does not embed the Androi
 
 The interface follows your macOS preferred app language: **English or Brazilian Portuguese**, with English as the development-language fallback when no preferred supported language matches. macOS per-app language preferences are respected. Quit and reopen the app after changing its language in **System Settings → General → Language & Region → Applications**. User-entered camera names are preserved.
 
-Live output depends on the visible view: preview 480 pixels / 5 FPS, grid cards 800 pixels / 5 FPS, and cinema/floating/fullscreen up to 1280 pixels / 15 FPS. Hidden viewers pause decoding. Recorded video uses a separate native player at its stored resolution/cadence. Live/two-way audio, Mac-side live recording, cloud-account login and vendor P2P are not implemented. Camera-side recording/audio settings can be available through device controls. Remote viewing requires an already configured VPN into your home network; Reversed engineering Icsee does not configure one.
+Live output depends on the visible view: preview 480 pixels / 5 FPS, grid cards 800 pixels / 5 FPS, and cinema/floating/fullscreen up to 1280 pixels / 15 FPS. Hidden viewers pause decoding. Recorded video uses a separate native player at its stored resolution/cadence. Remote access currently supports live video only; camera controls and SD-card history require local network access or a separately configured VPN. Live/two-way audio, Mac-side live recording and cloud-account login are not implemented. P2P compatibility depends on the camera and vendor service.
 
 ## Download and install
 
@@ -76,6 +77,8 @@ Packages land in `dist/release/`. See [release maintenance](docs/RELEASING.md) f
 3. Click **Connect**, then enter the camera's **local device** username and password. These can differ from your iCSee cloud credentials.
 4. Enable **Save in macOS Keychain** only if you want to remember credentials.
 5. Try **Substream** if the main stream is too heavy or unsupported.
+
+For remote live video, edit the camera, enable **Connect remotely**, and enter its serial number from the device information screen in iCSee. Connect with the camera's local credentials. The serial and mode are saved in macOS preferences; no cloud account is required. Disable remote mode to use the local address again.
 
 ### Saved credentials and Keychain
 
@@ -139,6 +142,8 @@ See the [camera control guide](docs/CAMERA_CONTROLS.md) for profiles, ports, mov
 ## Privacy and authentication
 
 Camera names, addresses and settings live in local macOS preferences. Credentials are saved in Keychain only when requested. The app sends authenticated URLs to FFmpeg through an in-memory pipe rather than process arguments or a playlist file. Raw decoder diagnostics are classified in memory instead of being saved or displayed. The app has no telemetry or cloud-account integration.
+
+**Remote security:** the vendor's discovery and P2P connection are not authenticated by this app. The network or vendor relay may expose video and a reusable camera password hash. Do not use remote mode on an untrusted network or if you do not trust the vendor infrastructure. A VPN to your own network remains an alternative.
 
 Passwords, derived Sofia credentials and decoded video still exist in process memory while viewing. The Sofia transformation exists for legacy protocol compatibility; it is not modern password storage or encryption. See [security policy and boundaries](SECURITY.md).
 

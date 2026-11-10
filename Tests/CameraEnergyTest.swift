@@ -22,6 +22,13 @@ import Foundation
         }
         guard !hasDecoder else { print("FAIL: invisible camera spawned a decoder"); exit(1) }
         guard session.credentialsForControls()?.username == "fixture" else { print("FAIL: idle suspend forgot authenticated camera"); exit(1) }
+        let remote = CameraSession()
+        defer { remote.stop() }
+        let invalid = Camera(name: "Remote fixture", host: "127.0.0.1", remoteEnabled: true, remoteSerial: "invalid,serial")
+        remote.start(camera: invalid, credentials: Credentials(username: "fixture", password: "fixture"))
+        guard remote.state == .suspended else { print("FAIL: hidden remote session did not suspend"); exit(1) }
+        remote.updateViewer(UUID(), profile: .grid)
+        guard case .failed = remote.state else { print("FAIL: invalid remote serial was accepted"); exit(1) }
         print("PASS: invisible camera uses no decoder and retains authentication in memory")
     }
 }

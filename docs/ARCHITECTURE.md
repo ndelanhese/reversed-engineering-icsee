@@ -10,6 +10,10 @@ flowchart LR
     Store --> Popup
     Keychain[macOS Keychain] --> Credentials[Credential sheet]
     Credentials --> Session
+    Session -->|serial + local credentials| Remote[Swift P2P transport]
+    Remote -->|vendor P2P / relay| RemoteCamera[Remote camera]
+    RemoteCamera -->|framed video| Remote
+    Remote -->|H.264 / HEVC through stdin| FFmpeg
     Session -->|authenticated playlist through stdin| FFmpeg[External FFmpeg process]
     FFmpeg -->|RTSP over TCP| Camera[Camera on LAN / VPN]
     Camera -->|video| FFmpeg
@@ -24,6 +28,7 @@ flowchart LR
 | File | Responsibility |
 | --- | --- |
 | `Sources/CameraCore/CameraCore.swift` | Endpoint validation and encoding, RTSP playlist generation, Sofia transformation, JPEG framing, diagnostic classification and liveness rules |
+| `Sources/CameraRemote/` | P2P discovery, reliable UDP framing, live media parsing, remote session and FFmpeg input |
 | `Sources/ReversedEngineeringIcsee/CameraSession.swift` | Visibility-driven FFmpeg lifetime, shared render demand, pipes, frame publication, watchdog and bounded compatibility/hardware fallback |
 | `Sources/ReversedEngineeringIcsee/CameraStore.swift` | Camera models, local preferences and Keychain operations |
 | `Sources/ReversedEngineeringIcsee/ReversedEngineeringIcseeApp.swift` | Main scene and native menu commands |

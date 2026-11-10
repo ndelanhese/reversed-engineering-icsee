@@ -39,7 +39,7 @@ struct CredentialSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Connect to \(camera.name)").font(.title2.weight(.semibold))
-            Text(camera.host).foregroundStyle(.secondary)
+            Text(camera.remoteEnabled ? String(localized: "Remote connection") : camera.host).foregroundStyle(.secondary)
             Form {
                 TextField("Local username", text: $username)
                 SecureField("Camera password", text: $password)
@@ -78,6 +78,11 @@ struct CredentialSheet: View {
     }
 }
 
+private enum RemoteSettingsError: LocalizedError {
+    case invalidSerial
+    var errorDescription: String? { String(localized: "Enter a valid camera serial number from iCSee.") }
+}
+
 struct CameraEditor: View {
     @ViewState var camera: Camera
     let existing: Bool
@@ -90,6 +95,14 @@ struct CameraEditor: View {
             Text(existing ? String(localized: "Edit camera") : String(localized: "Add camera")).font(.title2.weight(.semibold))
             Form {
                 TextField("Name", text: $camera.name)
+                Toggle("Connect remotely", isOn: $camera.remoteEnabled)
+                if camera.remoteEnabled {
+                    TextField("Camera serial number", text: $camera.remoteSerial)
+                    Text("Remote access uses vendor servers and may expose video and a reusable camera password hash.")
+                        .font(.callout).foregroundStyle(.secondary)
+                    Text("Find the serial number in the iCSee device information screen.")
+                        .font(.callout).foregroundStyle(.secondary)
+                }
                 TextField("IP address or hostname", text: $camera.host)
                 TextField("RTSP port", value: $camera.port, format: .number.grouping(.never))
                 Stepper("Channel \(camera.channel)", value: $camera.channel, in: 1...64)
@@ -97,8 +110,6 @@ struct CameraEditor: View {
                 TextField("ONVIF port", value: $camera.onvifPort, format: .number.grouping(.never))
                 TextField("Device control port", value: $camera.controlPort, format: .number.grouping(.never))
             }
-            Text("For remote access, the address must be reachable over a VPN. iCSee cloud login is not available yet.")
-                .font(.callout).foregroundStyle(.secondary)
             if let error { Text(error).foregroundStyle(.red).font(.callout) }
             HStack {
                 if existing { Button("Remove", role: .destructive) { remove(); dismiss() } }
@@ -106,7 +117,12 @@ struct CameraEditor: View {
                 Button("Cancel", role: .cancel) { dismiss() }
                 Button("Save") {
                     do {
-                        _ = try camera.endpoint.playlist(username: "validation", password: "")
+                        if camera.remoteEnabled {
+                            camera.remoteSerial = camera.remoteSerial.trimmingCharacters(in: .whitespacesAndNewlines)
+                            do { _ = try RemoteProtocol.lookupRequest(serial: camera.remoteSerial) }
+                            catch { throw RemoteSettingsError.invalidSerial }
+                        }
+                        if !camera.host.isEmpty || !camera.remoteEnabled { _ = try camera.endpoint.playlist(username: "validation", password: "") }
                         guard (1...65535).contains(camera.onvifPort), (1...65535).contains(camera.controlPort) else { throw CameraError.invalidEndpoint }
                         save(camera); dismiss()
                     } catch { self.error = error.localizedDescription }

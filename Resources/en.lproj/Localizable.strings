@@ -304,3 +304,12 @@
 
 "Paused while hidden" = "Paused while hidden";
 "Hardware video decoding is unavailable." = "Hardware video decoding is unavailable.";
+"Connect remotely" = "Connect remotely";
+"Remote connection" = "Remote connection";
+"Camera serial number" = "Camera serial number";
+"Remote access uses vendor servers and may expose video and a reusable camera password hash." = "Remote access uses vendor servers and may expose video and a reusable camera password hash.";
+"Find the serial number in the iCSee device information screen." = "Find the serial number in the iCSee device information screen.";
+"Enter a valid camera serial number from iCSee." = "Enter a valid camera serial number from iCSee.";
+"Invalid remote camera settings." = "Invalid remote camera settings.";
+"Remote connection ended. Check the camera and credentials, then reconnect." = "Remote connection ended. Check the camera and credentials, then reconnect.";
+"The camera rejected its local username or password." = "The camera rejected its local username or password.";

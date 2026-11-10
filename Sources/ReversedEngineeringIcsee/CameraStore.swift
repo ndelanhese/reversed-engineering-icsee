@@ -12,13 +12,15 @@ struct Camera: Identifiable, Codable, Equatable {
     var substream = false
     var onvifPort = 8899
     var controlPort = 34567
+    var remoteEnabled = false
+    var remoteSerial = ""
     var endpoint: CameraEndpoint {
         CameraEndpoint(host: host, port: port, channel: channel, substream: substream)
     }
 }
 
 extension Camera {
-    enum CodingKeys: String, CodingKey { case id, name, host, port, channel, substream, onvifPort, controlPort }
+    enum CodingKeys: String, CodingKey { case id, name, host, port, channel, substream, onvifPort, controlPort, remoteEnabled, remoteSerial }
     init(from decoder: any Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         id = try values.decode(UUID.self, forKey: .id)
@@ -29,6 +31,8 @@ extension Camera {
         substream = try values.decodeIfPresent(Bool.self, forKey: .substream) ?? false
         onvifPort = try values.decodeIfPresent(Int.self, forKey: .onvifPort) ?? 8899
         controlPort = try values.decodeIfPresent(Int.self, forKey: .controlPort) ?? 34567
+        remoteEnabled = try values.decodeIfPresent(Bool.self, forKey: .remoteEnabled) ?? false
+        remoteSerial = try values.decodeIfPresent(String.self, forKey: .remoteSerial) ?? ""
     }
 }
 
@@ -111,7 +115,7 @@ final class CameraStore {
     func session(_ camera: Camera) -> CameraSession { sessions[camera.id]! }
     func save(_ camera: Camera) {
         if let index = cameras.firstIndex(where: { $0.id == camera.id }) {
-            if cameras[index].endpoint != camera.endpoint { sessions[camera.id]?.stop() }
+            if cameras[index].endpoint != camera.endpoint || cameras[index].remoteEnabled != camera.remoteEnabled || cameras[index].remoteSerial != camera.remoteSerial { sessions[camera.id]?.stop() }
             cameras[index] = camera
         } else {
             cameras.append(camera)
