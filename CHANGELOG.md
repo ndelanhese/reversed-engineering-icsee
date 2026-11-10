@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.0 — 2026-11-10
+
+- Add experimental remote live viewing using the camera serial number and vendor P2P service; local credentials remain required.
+- Warn that vendor discovery and relay are unauthenticated and may expose video and a reusable camera password hash.
+- Keep camera controls and SD-card recordings on the local network or a separately configured VPN.
+- Validate live viewing and stop with one camera, and test direct/relay connections, packet loss, authentication and decoder fallback with synthetic fixtures.
+
 ## 0.6.2 — 2026-10-26
 
 - Pause live decoding and release frames when all camera viewers are closed, minimized, fully covered or hidden, and during system sleep. Resume visible viewers using their in-memory authenticated session; explicit Stop stays stopped.

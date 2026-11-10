@@ -135,7 +135,7 @@ Local RTSP video, native windows, menu bar preview, ONVIF camera controls, disco
 No live/two-way audio, Mac-side live recording or cloud login. Camera-side settings and SD-card compatibility depend on firmware.
 [Camera controls and validation scope]({REPOSITORY}/blob/v{version}/docs/CAMERA_CONTROLS.md).
 [SD-card playback/export and validation scope]({REPOSITORY}/blob/v{version}/docs/RECORDINGS.md).
-Remote access requires an existing VPN. Compatibility is firmware-dependent; these builds do not certify every iCSee device.
+Experimental remote live video uses vendor P2P infrastructure and a camera serial number. Camera controls and SD-card history require a local network or VPN. Vendor discovery and relay are unauthenticated and may expose video and a reusable camera password hash. Compatibility depends on camera firmware and vendor services.
 No automatic updater is installed.
 
 ## Validation
