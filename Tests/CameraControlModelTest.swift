@@ -5,7 +5,11 @@ import Foundation
         let id = UUID()
         let legacy = try JSONSerialization.data(withJSONObject: ["id": id.uuidString, "name": "Synthetic camera", "host": "127.0.0.1", "port": 554, "channel": 1, "substream": false])
         let camera = try JSONDecoder().decode(Camera.self, from: legacy)
-        guard camera.id == id, camera.onvifPort == 8899, camera.controlPort == 34567 else { print("FAIL: legacy profiles lost control defaults"); exit(1) }
+        guard camera.id == id, camera.onvifPort == 8899, camera.controlPort == 34567, !camera.remoteEnabled, camera.remoteSerial.isEmpty else { print("FAIL: legacy profiles lost control defaults"); exit(1) }
+        var remote = camera
+        remote.remoteEnabled = true; remote.remoteSerial = "1234567890abcdef"
+        let roundTrip = try JSONDecoder().decode(Camera.self, from: JSONEncoder().encode(remote))
+        guard roundTrip == remote else { print("FAIL: remote configuration was not preserved"); exit(1) }
         let model = CameraControlModel(camera: camera)
         guard !model.credentialsProvided, !model.deviceReady, model.profiles.isEmpty else { print("FAIL: controls started authenticated"); exit(1) }
         model.nudge(pan: 1, tilt: 0, zoom: 0)

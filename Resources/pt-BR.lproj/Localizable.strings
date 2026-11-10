@@ -304,3 +304,12 @@
 
 "Paused while hidden" = "Pausada enquanto oculta";
 "Hardware video decoding is unavailable." = "A decodificação de vídeo por hardware está indisponível.";
+"Connect remotely" = "Conectar remotamente";
+"Remote connection" = "Conexão remota";
+"Camera serial number" = "Número de série da câmera";
+"Remote access uses vendor servers and may expose video and a reusable camera password hash." = "O acesso remoto usa servidores do fabricante e pode expor o vídeo e um hash reutilizável da senha da câmera.";
+"Find the serial number in the iCSee device information screen." = "Encontre o número de série na tela de informações do dispositivo no iCSee.";
+"Enter a valid camera serial number from iCSee." = "Digite um número de série válido da câmera, disponível no iCSee.";
+"Invalid remote camera settings." = "Configurações inválidas para a câmera remota.";
+"Remote connection ended. Check the camera and credentials, then reconnect." = "A conexão remota terminou. Confira a câmera e as credenciais e conecte novamente.";
+"The camera rejected its local username or password." = "A câmera recusou o usuário ou a senha local.";

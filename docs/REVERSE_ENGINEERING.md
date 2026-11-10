@@ -2,7 +2,7 @@
 
 ## Goal and result
 
-The owner wanted direct access to personally owned iCSee cameras on a Mac: a grid, larger views and native windows. The starting material was an Android package exported from the owner's installed app. The result is an independent Swift client for the cameras' local RTSP interface, not a translated Android application or a replacement implementation of the vendor cloud.
+The owner wanted direct access to personally owned iCSee cameras on a Mac: a grid, larger views and native windows. The starting material was an Android package exported from the owner's installed app. The result is an independent Swift client for local RTSP and an experimental implementation of the vendor P2P path, not a translated Android application or a complete replacement for the vendor cloud.
 
 This document summarizes observations and decisions in original prose. It does not distribute the inspected application, decompiled code, vendor libraries, private traces or camera footage. Original research evidence remains outside this public repository; the notes are a provenance summary, not a fully reproducible artifact archive.
 
@@ -75,7 +75,8 @@ The public-repository preparation additionally used focused privacy/security rev
 | Native PTZ and image controls | ONVIF implementation; bounded command/Stop acknowledgements and brightness write/readback/restoration on two cameras; other physical features firmware-dependent |
 | Local SD-card history/playback/export | REA local-record manager/date-search evidence plus pinned vendor/independent DVRIP facts; native client/media/window tests use synthetic recordings; firmware compatibility remains device-specific. See [recording evidence and scope](RECORDINGS.md). |
 | Vendor device settings | DVRIP implementation and synthetic transaction/lifecycle verification; all firmware fields not exhaustively certified |
-| Cloud/P2P, live audio and SD playback work | **Not established and not implemented** |
+| Remote P2P live video | One owner-controlled camera authenticated and produced decoded images remotely; the vendor's discovery/relay traffic is not authenticated by this app, and compatibility beyond that device is unproven. |
+| Remote controls, remote SD playback and live audio | **Not established and not implemented** |
 | Full vendor protocol or SDK was recovered | **Not claimed** |
 
 For another device, obtain your own authorized input, keep private artifacts outside the repository, document observations without copying vendor implementation, and test using your own device credentials. Do not attach private dumps to issues.

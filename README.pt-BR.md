@@ -27,7 +27,11 @@ Sem vínculo com iCSee ou Xiongmai. Compatibilidade depende do firmware e do RTS
 
 Interface segue idioma preferido no macOS: **inglês ou português brasileiro**, respeitando ordem de preferências e idioma específico por app. Inglês é fallback quando nenhum idioma preferido compatível é encontrado. Após mudar em **Ajustes do Sistema → Geral → Idioma e Região → Aplicativos**, encerre e reabra app. Nomes das câmeras permanecem como você definiu.
 
-Áudio ao vivo/bidirecional, gravação do vídeo ao vivo no Mac, login na nuvem e P2P não foram implementados. Gravações do cartão são reproduzidas separadamente, com áudio G.711 convertido para AAC quando compatível. Ajustes de gravação/áudio na própria câmera podem estar disponíveis nos controles do dispositivo. Acesso remoto depende de VPN já configurada; o app não instala nem configura VPN.
+Áudio ao vivo/bidirecional, gravação do vídeo ao vivo no Mac e login na conta de nuvem não foram implementados. O vídeo ao vivo remoto é experimental e usa o número de série da câmera e a infraestrutura P2P do fabricante, sem VPN. Controles e histórico do cartão continuam exigindo acesso à rede local ou VPN. A compatibilidade depende da câmera e do serviço do fabricante.
+
+Para acessar o vídeo remotamente, edite a câmera, ative **Conectar remotamente** e informe o número de série disponível nas informações do dispositivo no iCSee. Conecte com as credenciais locais da câmera. O número de série e o modo ficam nas preferências do macOS; o login na conta iCSee não é necessário.
+
+**Segurança remota:** a descoberta e a conexão P2P do fabricante não são autenticadas pelo app. A rede ou o servidor intermediário podem expor o vídeo e um hash reutilizável da senha da câmera. Use esse modo apenas se confiar na rede e na infraestrutura do fabricante; uma VPN à sua rede é uma alternativa.
 
 ## Gravações do cartão SD
 
