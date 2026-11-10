@@ -98,7 +98,7 @@ struct CameraTile: View {
                     Text(camera.name).font(.headline)
                     HStack(spacing: 5) {
                         Circle().fill(session.state == .live ? Color.green : Color.secondary.opacity(0.4)).frame(width: 6, height: 6)
-                        if camera.remoteEnabled { Text("Remote connection").font(.caption).foregroundStyle(.secondary).lineLimit(1) }
+                        if session.usingRemote { Text("Remote connection").font(.caption).foregroundStyle(.secondary).lineLimit(1) }
                         else { Text(session.state == .live ? String(localized: "Live · \(camera.host)") : camera.host).font(.caption).foregroundStyle(.secondary).lineLimit(1) }
                     }
                 }

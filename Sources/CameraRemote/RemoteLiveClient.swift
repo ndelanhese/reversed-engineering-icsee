@@ -219,6 +219,7 @@ final class RemoteLiveClient: RemoteStreaming, @unchecked Sendable {
             let body = Data(frame.dropFirst(20).prefix { $0 != 0 })
             guard let object = try JSONSerialization.jsonObject(with: body) as? [String: Any], let status = object["Ret"] as? Int else { throw RemoteProtocolError.invalidResponse }
             if login { try RemoteProtocol.checkLoginStatus(status) }
+            else if status == 122 { throw RemoteProtocolError.streamUnavailable }
             else if status != 100 { throw RemoteProtocolError.rejected }
             return object
         }

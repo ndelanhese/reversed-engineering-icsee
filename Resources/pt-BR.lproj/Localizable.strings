@@ -313,3 +313,6 @@
 "Invalid remote camera settings." = "Configurações inválidas para a câmera remota.";
 "Remote connection ended. Check the camera and credentials, then reconnect." = "A conexão remota terminou. Confira a câmera e as credenciais e conecte novamente.";
 "The camera rejected its local username or password." = "A câmera recusou o usuário ou a senha local.";
+
+"Allow remote access" = "Permitir acesso remoto";
+"The local IP is used on the same network; otherwise the app connects remotely. Find the serial number in iCSee device information." = "O IP local é usado na mesma rede; caso contrário, o app conecta remotamente. Encontre o número de série nas informações do dispositivo no iCSee.";

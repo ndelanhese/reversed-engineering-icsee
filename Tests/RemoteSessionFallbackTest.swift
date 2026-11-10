@@ -14,6 +14,11 @@ private final class FakeStream: RemoteStreaming, @unchecked Sendable {
     }
 }
 
+private final class RejectMainStream: RemoteStreaming, @unchecked Sendable {
+    func cancel() { }
+    func run(onFrame: (UInt8, Data) throws -> Void) throws { throw RemoteProtocolError.streamUnavailable }
+}
+
 private final class FakeDecoder: RemoteDecoding, @unchecked Sendable {
     private let lock = NSLock()
     private var started = false
@@ -51,10 +56,26 @@ private final class FakeDecoder: RemoteDecoding, @unchecked Sendable {
             if session.state == .live {
                 guard attempts == [true, false], session.image != nil else { exit(1) }
                 print("PASS: remote silent hardware decoder falls back once to software")
-                return
+                break
             }
         }
-        print("FAIL: remote silent decoder did not fall back")
-        exit(1)
+        guard session.state == .live else { print("FAIL: remote silent decoder did not fall back"); exit(1) }
+        session.stop()
+        let alternate = CameraSession()
+        var streams: [Bool] = []
+        alternate.remoteClientFactoryForTesting = { configuration in
+            streams.append(configuration.substream)
+            return configuration.substream ? FakeStream() : RejectMainStream()
+        }
+        alternate.remoteDecoderFactoryForTesting = { _, callback in FakeDecoder(output: jpeg, callback: callback) }
+        alternate.updateViewer(UUID(), profile: .grid)
+        alternate.start(camera: camera, credentials: Credentials(username: "fixture", password: "fixture"))
+        defer { alternate.stop() }
+        for _ in 0..<60 {
+            try await Task.sleep(for: .milliseconds(100))
+            if alternate.state == .live { break }
+        }
+        guard alternate.state == .live, streams == [false, true] else { print("FAIL: remote stream fallback", streams); exit(1) }
+        print("PASS: remote switches to substream when main is unavailable")
     }
 }

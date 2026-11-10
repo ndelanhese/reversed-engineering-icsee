@@ -313,3 +313,6 @@
 "Invalid remote camera settings." = "Invalid remote camera settings.";
 "Remote connection ended. Check the camera and credentials, then reconnect." = "Remote connection ended. Check the camera and credentials, then reconnect.";
 "The camera rejected its local username or password." = "The camera rejected its local username or password.";
+
+"Allow remote access" = "Allow remote access";
+"The local IP is used on the same network; otherwise the app connects remotely. Find the serial number in iCSee device information." = "The local IP is used on the same network; otherwise the app connects remotely. Find the serial number in iCSee device information.";

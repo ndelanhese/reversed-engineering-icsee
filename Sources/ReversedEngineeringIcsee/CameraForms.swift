@@ -39,7 +39,7 @@ struct CredentialSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Connect to \(camera.name)").font(.title2.weight(.semibold))
-            Text(camera.remoteEnabled ? String(localized: "Remote connection") : camera.host).foregroundStyle(.secondary)
+            Text(camera.host.isEmpty ? String(localized: "Remote connection") : camera.host).foregroundStyle(.secondary)
             Form {
                 TextField("Local username", text: $username)
                 SecureField("Camera password", text: $password)
@@ -95,12 +95,12 @@ struct CameraEditor: View {
             Text(existing ? String(localized: "Edit camera") : String(localized: "Add camera")).font(.title2.weight(.semibold))
             Form {
                 TextField("Name", text: $camera.name)
-                Toggle("Connect remotely", isOn: $camera.remoteEnabled)
+                Toggle("Allow remote access", isOn: $camera.remoteEnabled)
                 if camera.remoteEnabled {
                     TextField("Camera serial number", text: $camera.remoteSerial)
                     Text("Remote access uses vendor servers and may expose video and a reusable camera password hash.")
                         .font(.callout).foregroundStyle(.secondary)
-                    Text("Find the serial number in the iCSee device information screen.")
+                    Text("The local IP is used on the same network; otherwise the app connects remotely. Find the serial number in iCSee device information.")
                         .font(.callout).foregroundStyle(.secondary)
                 }
                 TextField("IP address or hostname", text: $camera.host)
