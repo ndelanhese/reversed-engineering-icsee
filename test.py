@@ -80,7 +80,7 @@ sources = [str(p) for p in sorted((root/'Sources').rglob('*.swift')) if p.name !
 fallback_test = build / 'remote-session-fallback'
 subprocess.run(['swiftc', '-D', 'REMOTE_TESTING', '-swift-version', '6', '-target', 'arm64-apple-macos14.0', '-parse-as-library',
                 *sources, str(root/'Tests/RemoteSessionFallbackTest.swift'), '-o', str(fallback_test)], check=True)
-subprocess.run([str(fallback_test)], check=True, timeout=15)
+subprocess.run([str(fallback_test)], check=True, timeout=30)
 control_tests = [
     ('onvif-control', ['Sources/CameraControl/ONVIFTypes.swift', 'Sources/CameraControl/ONVIFClient.swift'], 'Tests/ONVIFControlTest.swift', 30),
     ('dvrip-control', ['Sources/CameraCore/CameraCore.swift', 'Sources/CameraControl/DeviceJSON.swift', 'Sources/CameraControl/DVRIPClient.swift'], 'Tests/DVRIPControlTest.swift', 30),

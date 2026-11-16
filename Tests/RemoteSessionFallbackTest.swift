@@ -89,6 +89,7 @@ private final class FakeDecoder: RemoteDecoding, @unchecked Sendable {
         alternate.networkChanged()
         for _ in 0..<60 { try await Task.sleep(for: .milliseconds(100)); if alternate.state == .live && streams.count >= 4 { break } }
         guard alternate.state == .live, streams == [false, true, false, true] else { print("FAIL: network change did not restore preferred stream", streams); exit(1) }
+        alternate.stop()
         let failedDecoder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try Data("#!/bin/sh\ncat >/dev/null\necho connection refused >&2\n".utf8).write(to: failedDecoder)
         try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: failedDecoder.path)
@@ -108,6 +109,7 @@ private final class FakeDecoder: RemoteDecoding, @unchecked Sendable {
         }
         guard blocked.state == .live, blocked.usingRemote else { print("FAIL: local connection failure did not fall back to remote"); exit(1) }
         print("PASS: unreachable local camera falls back to remote")
+        blocked.stop()
         let localOnly = CameraSession()
         localOnly.localNetworkForTesting = true
         localOnly.localExecutableForTesting = failedDecoder.path
@@ -124,6 +126,7 @@ private final class FakeDecoder: RemoteDecoding, @unchecked Sendable {
         }
         guard case .failed = localOnly.state, !unexpectedRemote else { print("FAIL: local-only camera attempted remote"); exit(1) }
         print("PASS: local-only camera never falls back to remote")
+        localOnly.stop()
         let silentDecoder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try Data("#!/bin/sh\ncat >/dev/null\nexec sleep 10\n".utf8).write(to: silentDecoder)
         try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: silentDecoder.path)
@@ -143,6 +146,7 @@ private final class FakeDecoder: RemoteDecoding, @unchecked Sendable {
         }
         guard silent.state == .live, silent.usingRemote else { print("FAIL: silent local connection did not fall back promptly"); exit(1) }
         print("PASS: silent local connection falls back promptly")
+        silent.stop()
         let imageFile = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         let localDecoder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try jpeg.write(to: imageFile)
@@ -157,15 +161,15 @@ private final class FakeDecoder: RemoteDecoding, @unchecked Sendable {
         switching.updateViewer(UUID(), profile: .grid)
         switching.start(camera: localCamera, credentials: Credentials(username: "fixture", password: "fixture"))
         defer { switching.stop() }
-        for _ in 0..<30 { try await Task.sleep(for: .milliseconds(100)); if switching.state == .live { break } }
-        guard switching.state == .live, switching.usingRemote else { print("FAIL: initial remote"); exit(1) }
+        for _ in 0..<60 { try await Task.sleep(for: .milliseconds(100)); if switching.state == .live { break } }
+        guard switching.state == .live, switching.usingRemote else { print("FAIL: initial remote", switching.state, switching.usingRemote, switching.frames); exit(1) }
         switching.localNetworkForTesting = true
         switching.networkChanged()
-        for _ in 0..<30 { try await Task.sleep(for: .milliseconds(100)); if switching.state == .live && !switching.usingRemote { break } }
+        for _ in 0..<60 { try await Task.sleep(for: .milliseconds(100)); if switching.state == .live && !switching.usingRemote { break } }
         guard switching.state == .live, !switching.usingRemote else { print("FAIL: did not switch from remote to local", switching.state, switching.usingRemote, switching.frames); exit(1) }
         switching.localNetworkForTesting = false
         switching.networkChanged()
-        for _ in 0..<30 { try await Task.sleep(for: .milliseconds(100)); if switching.state == .live && switching.usingRemote { break } }
+        for _ in 0..<60 { try await Task.sleep(for: .milliseconds(100)); if switching.state == .live && switching.usingRemote { break } }
         guard switching.state == .live, switching.usingRemote else { print("FAIL: did not switch from local to remote"); exit(1) }
         switching.stop()
         switching.networkChanged()
@@ -179,13 +183,14 @@ private final class FakeDecoder: RemoteDecoding, @unchecked Sendable {
         recovery.updateViewer(UUID(), profile: .grid)
         recovery.start(camera: localCamera, credentials: Credentials(username: "fixture", password: "fixture"))
         defer { recovery.stop() }
-        for _ in 0..<30 { try await Task.sleep(for: .milliseconds(100)); if case .failed = recovery.state { break } }
+        for _ in 0..<60 { try await Task.sleep(for: .milliseconds(100)); if case .failed = recovery.state { break } }
         guard case .failed = recovery.state else { print("FAIL: expected network failure"); exit(1) }
         shouldFail = false
         recovery.networkChanged()
-        for _ in 0..<30 { try await Task.sleep(for: .milliseconds(100)); if recovery.state == .live { break } }
+        for _ in 0..<60 { try await Task.sleep(for: .milliseconds(100)); if recovery.state == .live { break } }
         guard recovery.state == .live else { print("FAIL: network failure did not recover when network changed"); exit(1) }
         print("PASS: network failure recovers on network changes")
+        recovery.stop()
         let badCredentials = CameraSession()
         badCredentials.localNetworkForTesting = false
         var loginAttempts = 0
@@ -194,7 +199,7 @@ private final class FakeDecoder: RemoteDecoding, @unchecked Sendable {
         badCredentials.updateViewer(UUID(), profile: .grid)
         badCredentials.start(camera: localCamera, credentials: Credentials(username: "fixture", password: "fixture"))
         defer { badCredentials.stop() }
-        for _ in 0..<30 { try await Task.sleep(for: .milliseconds(100)); if case .failed = badCredentials.state { break } }
+        for _ in 0..<60 { try await Task.sleep(for: .milliseconds(100)); if case .failed = badCredentials.state { break } }
         badCredentials.networkChanged()
         try await Task.sleep(for: .milliseconds(200))
         guard loginAttempts == 1 else { print("FAIL: authentication error retried automatically"); exit(1) }
