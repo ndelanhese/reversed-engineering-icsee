@@ -2,6 +2,7 @@ import AppKit
 import Foundation
 import Observation
 import Security
+import Network
 
 struct Camera: Identifiable, Codable, Equatable {
     var id = UUID()
@@ -89,6 +90,9 @@ final class CameraStore {
     private(set) var menuBarCameraID: UUID?
     var menuBarCamera: Camera? { cameras.first { $0.id == menuBarCameraID } ?? cameras.first }
     private let defaults: UserDefaults
+    @ObservationIgnored private let networkMonitor = NWPathMonitor()
+    @ObservationIgnored private var previousPath: NWPath?
+    @ObservationIgnored private var networkChangeTask: Task<Void, Never>?
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         if let data = defaults.data(forKey: "cameras"),
@@ -102,7 +106,23 @@ final class CameraStore {
         menuBarCameraID = cameras.contains { $0.id == savedPreview } ? savedPreview : cameras.first?.id
         persistMenuBarCamera()
         persist()
+        networkMonitor.pathUpdateHandler = { [weak self] path in
+            Task { @MainActor [weak self] in self?.networkPathChanged(path) }
+        }
+        networkMonitor.start(queue: DispatchQueue(label: "local.CamMac.network"))
     }
+    private func networkPathChanged(_ path: NWPath) {
+        guard let previousPath else { self.previousPath = path; return }
+        guard previousPath != path else { return }
+        self.previousPath = path
+        networkChangeTask?.cancel()
+        networkChangeTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(2))
+            guard !Task.isCancelled, let self else { return }
+            for session in self.sessions.values { session.networkChanged() }
+        }
+    }
+    deinit { networkMonitor.cancel(); networkChangeTask?.cancel() }
     func selectMenuBarCamera(_ id: UUID) {
         guard cameras.contains(where: { $0.id == id }) else { return }
         menuBarCameraID = id

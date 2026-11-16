@@ -34,6 +34,7 @@ final class CameraSession {
     private var generation = UUID()
     private(set) var usingRemote = false
     private var localFailed = false
+    private var preferredSubstream = false
     private var remoteClient: (any RemoteStreaming)?
     private var remoteDecoder: (any RemoteDecoding)?
     #if REMOTE_TESTING
@@ -55,6 +56,7 @@ final class CameraSession {
     func start(camera: Camera, credentials: Credentials) {
         stop()
         localFailed = false
+        preferredSubstream = camera.substream
         request = (camera, credentials, false, true)
         controlCredentials = credentials
         reconcileViewers()
@@ -63,6 +65,14 @@ final class CameraSession {
     func updateViewer(_ id: UUID, profile: CameraRenderProfile?) {
         guard viewers[id] != profile else { return }
         viewers[id] = profile
+        reconcileViewers()
+    }
+
+    func networkChanged() {
+        guard request != nil else { return }
+        localFailed = false
+        request?.camera.substream = preferredSubstream
+        stopDecoder()
         reconcileViewers()
     }
 
@@ -188,15 +198,16 @@ final class CameraSession {
                 var message: String?
                 var decoderFailed = false
                 var streamUnavailable = false
+                var authenticationFailed = false
                 do { try client.run { codec, data in try decoder.write(codec: codec, data: data) } }
-                catch RemoteProtocolError.authentication { message = String(localized: "The camera rejected its local username or password.") }
+                catch RemoteProtocolError.authentication { authenticationFailed = true; message = String(localized: "The camera rejected its local username or password.") }
                 catch RemoteDecoderError.failed { decoderFailed = true }
                 catch RemoteProtocolError.streamUnavailable { streamUnavailable = true }
                 catch is CancellationError { }
                 catch { message = String(localized: "Remote connection ended. Check the camera and credentials, then reconnect.") }
                 decoder.stop()
                 continuation.finish()
-                await self?.remoteEnded(token: token, message: message, decoderFailed: decoderFailed, streamUnavailable: streamUnavailable)
+                await self?.remoteEnded(token: token, message: message, decoderFailed: decoderFailed, streamUnavailable: streamUnavailable, authenticationFailed: authenticationFailed)
             }
             #if REMOTE_TESTING
             monitor(token: token, startupTimeout: remoteStartupTimeoutForTesting ?? .seconds(45))
@@ -209,7 +220,7 @@ final class CameraSession {
         }
     }
 
-    private func remoteEnded(token: UUID, message: String?, decoderFailed: Bool, streamUnavailable: Bool) {
+    private func remoteEnded(token: UUID, message: String?, decoderFailed: Bool, streamUnavailable: Bool, authenticationFailed: Bool) {
         guard generation == token else { return }
         if streamUnavailable, frames == 0, request?.camera.substream == false {
             request?.camera.substream = true
@@ -223,7 +234,7 @@ final class CameraSession {
             reconcileViewers()
             return
         }
-        stop()
+        if authenticationFailed { stop() } else { stopDecoder() }
         state = .failed(message ?? String(localized: "Remote connection ended. Check the camera and credentials, then reconnect."))
     }
 
@@ -244,7 +255,7 @@ final class CameraSession {
                         self.reconcileViewers()
                         return
                     }
-                    self.stop()
+                    self.stopDecoder()
                     self.state = .failed(String(localized: "The camera stopped sending video. Check the network and credentials, then reconnect."))
                     return
                 }
@@ -274,7 +285,7 @@ final class CameraSession {
             reconcileViewers()
             return
         }
-        stop()
+        if failure == .unreachable { stopDecoder() } else { stop() }
         state = .failed(failure?.message ?? String(localized: "The camera ended the stream. Reconnect or select Substream in camera settings."))
     }
     private func tryRemoteAfterLocalFailure() -> Bool {
