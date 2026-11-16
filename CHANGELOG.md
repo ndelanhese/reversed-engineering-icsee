@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.3 — 2026-11-16
+
+- Reevaluate active camera connections when the network changes, preferring local video when available and using remote access otherwise.
+- Recover from network failures on a subsequent network change without retrying rejected credentials or restarting manually stopped cameras.
+
 ## 0.7.2 — 2026-11-16
 
 - Fall back to enabled remote live access when the local connection is unreachable or stops delivering video, including when a VPN blocks local traffic. Limit the initial local wait to eight seconds when remote access is configured.
