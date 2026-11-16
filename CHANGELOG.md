@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.2 — 2026-11-16
+
+- Fall back to enabled remote live access when the local connection is unreachable or stops delivering video, including when a VPN blocks local traffic.
+- VPN policies can also block remote access; controls and recordings remain local-only.
+
 ## 0.7.1 — 2026-11-10
 
 - Prefer the saved local IPv4 address when its subnet is active; otherwise use enabled remote live access.

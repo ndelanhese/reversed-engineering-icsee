@@ -33,9 +33,12 @@ final class CameraSession {
     private var lastFrameAt: ContinuousClock.Instant?
     private var generation = UUID()
     private(set) var usingRemote = false
+    private var localFailed = false
     private var remoteClient: (any RemoteStreaming)?
     private var remoteDecoder: (any RemoteDecoding)?
     #if REMOTE_TESTING
+    var localNetworkForTesting: Bool?
+    var localExecutableForTesting: String?
     var remoteStartupTimeoutForTesting: Duration?
     var remoteClientFactoryForTesting: ((RemoteLiveConfiguration) -> any RemoteStreaming)?
     var remoteDecoderFactoryForTesting: ((Bool, @escaping @Sendable (Data) -> Void) -> any RemoteDecoding)?
@@ -50,6 +53,7 @@ final class CameraSession {
 
     func start(camera: Camera, credentials: Credentials) {
         stop()
+        localFailed = false
         request = (camera, credentials, false, true)
         controlCredentials = credentials
         reconcileViewers()
@@ -74,14 +78,23 @@ final class CameraSession {
 
     private func launch(camera: Camera, credentials: Credentials, useSofiaQuery: Bool,
                         hardware: Bool, profile: CameraRenderProfile) {
-        usingRemote = camera.remoteEnabled && !LocalNetwork.contains(host: camera.host)
+        #if REMOTE_TESTING
+        let local = localNetworkForTesting ?? LocalNetwork.contains(host: camera.host)
+        #else
+        let local = LocalNetwork.contains(host: camera.host)
+        #endif
+        usingRemote = camera.remoteEnabled && (localFailed || !local)
         if usingRemote {
             launchRemote(camera: camera, credentials: credentials, hardware: hardware, profile: profile)
             return
         }
         do {
             let playlist = try camera.endpoint.playlist(username: credentials.username, password: credentials.password, useSofiaQuery: useSofiaQuery)
+            #if REMOTE_TESTING
+            let bundled = localExecutableForTesting ?? Bundle.main.url(forAuxiliaryExecutable: "ffmpeg")?.path
+            #else
             let bundled = Bundle.main.url(forAuxiliaryExecutable: "ffmpeg")?.path
+            #endif
             guard let executable = ([bundled].compactMap { $0 } + ["/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg"])
                 .first(where: { FileManager.default.isExecutableFile(atPath: $0) }) else {
                 stop()
@@ -218,6 +231,7 @@ final class CameraSession {
                 let now = ContinuousClock.now
                 let timedOut = self.lastFrameAt.map { $0.duration(to: now) > .seconds(12) } ?? (started.duration(to: now) > startupTimeout)
                 if timedOut {
+                    if self.tryRemoteAfterLocalFailure() { return }
                     if self.usingRemote, self.frames == 0,
                        self.request?.hardware == true, self.remoteDecoder?.hasStarted == true {
                         self.request?.hardware = false
@@ -242,6 +256,7 @@ final class CameraSession {
     }
     private func ended(token: UUID, failure: DecoderFailure?) {
         guard generation == token else { return }
+        if failure == .unreachable, tryRemoteAfterLocalFailure() { return }
         if failure == .authentication, frames == 0, request?.sofia == false {
             request?.sofia = true
             stopDecoder()
@@ -256,6 +271,14 @@ final class CameraSession {
         }
         stop()
         state = .failed(failure?.message ?? String(localized: "The camera ended the stream. Reconnect or select Substream in camera settings."))
+    }
+    private func tryRemoteAfterLocalFailure() -> Bool {
+        guard !usingRemote, !localFailed, request?.camera.remoteEnabled == true,
+              request?.camera.remoteSerial.isEmpty == false else { return false }
+        localFailed = true
+        stopDecoder()
+        reconcileViewers()
+        return true
     }
     func stop() {
         request = nil

@@ -77,5 +77,40 @@ private final class FakeDecoder: RemoteDecoding, @unchecked Sendable {
         }
         guard alternate.state == .live, streams == [false, true] else { print("FAIL: remote stream fallback", streams); exit(1) }
         print("PASS: remote switches to substream when main is unavailable")
+        let failedDecoder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try Data("#!/bin/sh\ncat >/dev/null\necho connection refused >&2\n".utf8).write(to: failedDecoder)
+        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: failedDecoder.path)
+        defer { try? FileManager.default.removeItem(at: failedDecoder) }
+        let blocked = CameraSession()
+        blocked.localNetworkForTesting = true
+        blocked.localExecutableForTesting = failedDecoder.path
+        blocked.remoteClientFactoryForTesting = { _ in FakeStream() }
+        blocked.remoteDecoderFactoryForTesting = { _, callback in FakeDecoder(output: jpeg, callback: callback) }
+        let localCamera = Camera(name: "Blocked local", host: "127.0.0.1", port: 1, remoteEnabled: true, remoteSerial: "1234567890abcdef")
+        blocked.updateViewer(UUID(), profile: .grid)
+        blocked.start(camera: localCamera, credentials: Credentials(username: "fixture", password: "fixture"))
+        defer { blocked.stop() }
+        for _ in 0..<60 {
+            try await Task.sleep(for: .milliseconds(100))
+            if blocked.state == .live || { if case .failed = blocked.state { return true }; return false }() { break }
+        }
+        guard blocked.state == .live, blocked.usingRemote else { print("FAIL: local connection failure did not fall back to remote"); exit(1) }
+        print("PASS: unreachable local camera falls back to remote")
+        let localOnly = CameraSession()
+        localOnly.localNetworkForTesting = true
+        localOnly.localExecutableForTesting = failedDecoder.path
+        var unexpectedRemote = false
+        localOnly.remoteClientFactoryForTesting = { _ in unexpectedRemote = true; return FakeStream() }
+        var localOnlyCamera = localCamera
+        localOnlyCamera.remoteEnabled = false
+        localOnly.updateViewer(UUID(), profile: .grid)
+        localOnly.start(camera: localOnlyCamera, credentials: Credentials(username: "fixture", password: "fixture"))
+        defer { localOnly.stop() }
+        for _ in 0..<60 {
+            try await Task.sleep(for: .milliseconds(100))
+            if case .failed = localOnly.state { break }
+        }
+        guard case .failed = localOnly.state, !unexpectedRemote else { print("FAIL: local-only camera attempted remote"); exit(1) }
+        print("PASS: local-only camera never falls back to remote")
     }
 }
