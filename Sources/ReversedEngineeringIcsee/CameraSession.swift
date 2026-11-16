@@ -39,6 +39,7 @@ final class CameraSession {
     #if REMOTE_TESTING
     var localNetworkForTesting: Bool?
     var localExecutableForTesting: String?
+    var localStartupTimeoutForTesting: Duration?
     var remoteStartupTimeoutForTesting: Duration?
     var remoteClientFactoryForTesting: ((RemoteLiveConfiguration) -> any RemoteStreaming)?
     var remoteDecoderFactoryForTesting: ((Bool, @escaping @Sendable (Data) -> Void) -> any RemoteDecoding)?
@@ -145,7 +146,11 @@ final class CameraSession {
                 try? handle.close()
                 await self?.ended(token: token, failure: diagnostics.value)
             }
-            monitor(token: token)
+            #if REMOTE_TESTING
+            monitor(token: token, startupTimeout: localStartupTimeoutForTesting ?? (camera.remoteEnabled ? .seconds(8) : .seconds(20)))
+            #else
+            monitor(token: token, startupTimeout: camera.remoteEnabled ? .seconds(8) : .seconds(20))
+            #endif
         } catch {
             stop()
             state = .failed(error.localizedDescription)

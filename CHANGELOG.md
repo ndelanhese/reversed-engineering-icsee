@@ -2,7 +2,7 @@
 
 ## 0.7.2 — 2026-11-16
 
-- Fall back to enabled remote live access when the local connection is unreachable or stops delivering video, including when a VPN blocks local traffic.
+- Fall back to enabled remote live access when the local connection is unreachable or stops delivering video, including when a VPN blocks local traffic. Limit the initial local wait to eight seconds when remote access is configured.
 - VPN policies can also block remote access; controls and recordings remain local-only.
 
 ## 0.7.1 — 2026-11-10

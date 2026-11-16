@@ -112,5 +112,24 @@ private final class FakeDecoder: RemoteDecoding, @unchecked Sendable {
         }
         guard case .failed = localOnly.state, !unexpectedRemote else { print("FAIL: local-only camera attempted remote"); exit(1) }
         print("PASS: local-only camera never falls back to remote")
+        let silentDecoder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try Data("#!/bin/sh\ncat >/dev/null\nexec sleep 10\n".utf8).write(to: silentDecoder)
+        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: silentDecoder.path)
+        defer { try? FileManager.default.removeItem(at: silentDecoder) }
+        let silent = CameraSession()
+        silent.localNetworkForTesting = true
+        silent.localExecutableForTesting = silentDecoder.path
+        silent.localStartupTimeoutForTesting = .seconds(1)
+        silent.remoteClientFactoryForTesting = { _ in FakeStream() }
+        silent.remoteDecoderFactoryForTesting = { _, callback in FakeDecoder(output: jpeg, callback: callback) }
+        silent.updateViewer(UUID(), profile: .grid)
+        silent.start(camera: localCamera, credentials: Credentials(username: "fixture", password: "fixture"))
+        defer { silent.stop() }
+        for _ in 0..<50 {
+            try await Task.sleep(for: .milliseconds(100))
+            if silent.state == .live { break }
+        }
+        guard silent.state == .live, silent.usingRemote else { print("FAIL: silent local connection did not fall back promptly"); exit(1) }
+        print("PASS: silent local connection falls back promptly")
     }
 }
